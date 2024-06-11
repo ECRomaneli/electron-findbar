@@ -1,0 +1,33 @@
+{
+  "name": "electron-findbar",
+  "version": "0.2.1",
+  "description": "Chrome-like findbar for your Electron app.",
+  "main": "index.js",
+  "scripts": {
+    "sample": "electron sample.js",
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ECRomaneli/electron-findbar.git"
+  },
+  "keywords": [
+    "findbar",
+    "electron-findbar",
+    "electron",
+    "chrome-findbar",
+    "search"
+  ],
+  "author": "ECRomaneli",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ECRomaneli/electron-findbar/issues"
+  },
+  "homepage": "https://github.com/ECRomaneli/electron-findbar#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {
+    "electron": ">=12.0.0"
+  }
+}
