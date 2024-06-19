@@ -259,6 +259,7 @@ class Findbar {
      * Select input text.
      */
     #focusInput() {
+        this.#window.focus()
         this.#window.webContents.send('electron-findbar/input-focus')
     }
 }
