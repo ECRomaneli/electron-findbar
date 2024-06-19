@@ -1,5 +1,4 @@
 const { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions, Rectangle } = require('electron')
-const path = require('node:path')
 
 class Findbar {
     /** @type {BaseWindow} */
@@ -63,7 +62,7 @@ class Findbar {
 
         this.#windowHandler && this.#windowHandler(this.#window)
         
-        this.#window.loadFile(path.join(__dirname, 'web', 'findbar.html'))
+        this.#window.loadFile(`${__dirname}/web/findbar.html`)
     }
 
     /**
