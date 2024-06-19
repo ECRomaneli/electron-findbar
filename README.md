@@ -82,11 +82,19 @@ findbar.setWindowHandler(win => {
 
 ### Opening the Findbar
 
-The Findbar is a child window of the `BaseWindow` passed during construction. It will follow the relative movement of the parent window and must be visible for the Findbar to display:
+The Findbar is a child window of the `BaseWindow` passed during construction. To open it use:
 
 ```js
 findbar.open();
 ```
+
+On MacOS, the findbar will follow the relative movement of the parent window by default and there is no way to change it. On Windows and Linux, this behavior is not default and is simulated by using the `move` event of the parent and can be disabled by using:
+
+```js
+findbar.followParentWindow(false)
+```
+
+> Enabled by default.
 
 ### Finding Text in the Page
 
