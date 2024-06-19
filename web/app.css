@@ -16,6 +16,9 @@ nav {
     --input-color: #1f1f1f;
     --btn-hover-color: #ccc;
     --btn-active-color: #bbb;
+    --font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    --font-size: .75rem;
+    --spacing: .75rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -42,19 +45,25 @@ nav {
     align-items: center;
     width: 100%;
     height: 100%;
-    padding: .75rem;
-    font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+    padding: var(--spacing);
     background-color: var(--bg-color);
     color: var(--color);
-    font-size: .75rem;
     border-radius: 10px;
     border: 1px solid var(--border);
     -webkit-app-region: drag;
 }
 
-nav > span,
-nav > .divider {
-    margin-right: .75rem;
+nav > *:not(:last-child),
+.btn-group > *:not(:last-child) {
+    margin-right: var(--spacing);
+}
+
+span, input {
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+}
+
+span {
     user-select: none;
 }
 
@@ -62,6 +71,7 @@ input {
     width: 100%;
     background-color: transparent;
     color: var(--input-color);
+    font-weight: 500;
     border: none;
     outline: none;
     -webkit-app-region: no-drag;
@@ -75,10 +85,6 @@ input {
 
 .btn-group {
     display: flex;
-}
-
-.btn-group > :not(:last-child) {
-    margin-right: .5rem;
 }
 
 .btn-group > div {
