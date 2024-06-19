@@ -6,7 +6,7 @@ app.whenReady().then(() => {
   window.loadURL('https://github.com/ECRomaneli/electron-findbar#readme')
 
   const findbar = new Findbar(window)
-  findbar.setWindowOptions({ movable: !true, resizable: true })
+  findbar.setWindowOptions({ movable: true, resizable: true })
   findbar.setWindowHandler(win => {
     win.webContents.openDevTools()
   })

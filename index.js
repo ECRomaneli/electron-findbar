@@ -180,6 +180,7 @@ class Findbar {
         options.height = options.height ?? 52
         options.resizable = options.resizable ?? false
         options.movable = options.movable ?? false
+        options.acceptFirstMouse = options.acceptFirstMouse ?? true
         options.parent = parent
         options.frame = false
         options.transparent = true
