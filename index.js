@@ -23,8 +23,11 @@ class Findbar {
     /** @type {string} */
     #lastValue = ''
 
-    /** @type {boolean} */
-    #followParent = process.platform !== 'darwin'
+    /**
+     * Workaround to fix "findInPage" bug - double-click to loop
+     * @type {boolean | null}
+     */
+    #fixMove = null
 
     /**
      * Prepare the findbar.
@@ -90,6 +93,10 @@ class Findbar {
      * Select previous match if any.
      */
     findPrevious() {
+        if (this.#matches.active === 1) {
+            this.#fixMove = false
+        }
+
         this.#searchableContents.findInPage(this.#lastValue, { forward: false })
     }
 
@@ -97,6 +104,10 @@ class Findbar {
      * Select next match if any.
      */
     findNext() {
+        if (this.#matches.active === this.#matches.total) {
+            this.#fixMove = true
+        }
+
         this.#searchableContents.findInPage(this.#lastValue, { forward: true })
     }
 
@@ -144,18 +155,6 @@ class Findbar {
     }
 
     /**
-     * Set the findbar to follow the parent window. Default is true.
-     * 
-     * On darwin platform, the findbar follows the parent window by default. This method is set
-     * to false to not create a "move" event listener unnescessarily.
-     * @platform win32,linux
-     * @param {boolean} follow If true, the findbar will follow the parent window movement.
-     */
-    followParentWindow(follow) {
-        this.#followParent = follow
-    }
-
-    /**
      * Merge custom, defaults, and fixed options.
      * @param {Electron.BrowserWindowConstructorOptions} options Custom options.
      * @param {BaseWindow | void} parent Parent window, if any.
@@ -184,37 +183,21 @@ class Findbar {
      * Register all event listeners.
      */
     #registerListeners() {
-        const followParent = this.#followParent
         const showCascade = () => this.#window.isVisible() || this.#window.show()
         const hideCascade = () => this.#window.isVisible() && this.#window.hide()
-        
-        let lastPos = this.#parent.getPosition()
-        const moveCascade = () => {
-            const newPos = this.#parent.getPosition()
-            const diff = { x: newPos[0] - lastPos[0], y: newPos[1] - lastPos[1] }
-            lastPos = newPos
-
-            const { x, y } = this.#window.getBounds()
-            this.#window.setPosition(x + diff.x, y + diff.y)
-        }
 
         this.#parent.prependListener('show', showCascade)
         this.#parent.prependListener('hide', hideCascade)
-        followParent && this.#parent.prependListener('move', moveCascade)
 
-        this.#window.once('close', () => {
+        this.#window.once('closed', () => {
             this.#parent.off('show', showCascade)
             this.#parent.off('hide', hideCascade)
-            followParent && this.#parent.off('move', moveCascade)
             this.#window = null
             this.stopFind()
         })
 
         this.#searchableContents.prependOnceListener('destroyed', () => { this.close() })
-        this.#searchableContents.prependListener('found-in-page', (_e, result) => {
-            this.#matches = result
-            this.#sendMatchesCount(result.activeMatchOrdinal, result.matches)
-        })
+        this.#searchableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
     }
 
     /**
@@ -235,7 +218,14 @@ class Findbar {
      * @param {number} total Total matches.
      */
     #sendMatchesCount(active, total) {
-        this.#window.webContents.send('electron-findbar/matches', { active, total })
+        if (this.#fixMove !== null) {
+            this.#fixMove ? this.findNext() : this.findPrevious()
+            this.#fixMove = null
+        }
+
+        this.#matches = { active, total }
+
+        this.#window.webContents.send('electron-findbar/matches', this.#matches)
     }
 
     /**
