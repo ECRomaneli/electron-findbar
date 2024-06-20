@@ -80,6 +80,15 @@ findbar.setWindowHandler(win => {
 });
 ```
 
+The findbar has a default position handler which moves the findbar to the top-right corner. To change the position handler, use the `setPositionHandler`. The position handler is called when the parent window moves or resizes and provides both the parent and findbar bounds as parameters.
+
+```js
+findbar.setPositionHandler((parentBounds, findbarBounds) => ({
+    x: parentBounds.x + parentBounds.width - findbarBounds.width - 20,
+    y: parentBounds.y - ((findbarBounds.height / 4) | 0)
+}));
+```
+
 ### Opening the Findbar
 
 The Findbar is a child window of the `BaseWindow` passed during construction. To open it use:

@@ -16,6 +16,9 @@ class Findbar {
     /** @type {(findbarWindow: BrowserWindow) => void} */
     #windowHandler
 
+    /** @type {{parentBounds: Rectangle, findbarBounds: Rectangle} => {x: number, y: number}} */
+    #positionHandler = Findbar.#setDefaultPosition
+
     /** @type {BrowserWindowConstructorOptions} */
     #customOptions
 
@@ -58,7 +61,9 @@ class Findbar {
         this.#window.webContents.findbar = this
 
         this.#registerListeners()
-        this.#setDefaultPosition(this.#parent.getBounds())
+
+        const pos = this.#positionHandler(this.#parent.getBounds(), this.#window.getBounds())
+        this.#window.setPosition(pos.x, pos.y)
 
         this.#windowHandler && this.#windowHandler(this.#window)
         
@@ -159,6 +164,14 @@ class Findbar {
     }
 
     /**
+     * Set a bounds handler to calculate the findbar bounds when the parent resizes.
+     * @param {{parentBounds: Rectangle, findbarBounds: Rectangle} => Rectangle} boundsHandler Bounds handler.
+     */
+    setBoundsHandler(boundsHandler) {
+        this.#positionHandler = boundsHandler
+    }
+
+    /**
      * Set the findbar to follow the parent window. Default is true.
      * 
      * On darwin platform, the findbar follows the parent window by default. This method is set
@@ -177,43 +190,27 @@ class Findbar {
         const followParent = this.#followParent
         const showCascade = () => this.#window.isVisible() || this.#window.show()
         const hideCascade = () => this.#window.isVisible() && this.#window.hide()
-        
-        let lastPos = this.#parent.getPosition()
-        const moveCascade = () => {
-            const newPos = this.#parent.getPosition()
-            const diff = { x: newPos[0] - lastPos[0], y: newPos[1] - lastPos[1] }
-            lastPos = newPos
-
-            const { x, y } = this.#window.getBounds()
-            this.#window.setPosition(x + diff.x, y + diff.y)
+        const positionHandler = () => {
+            const pos = this.#positionHandler(this.#parent.getBounds(), this.#window.getBounds())
+            this.#window.setPosition(pos.x, pos.y)
         }
-
+        
         this.#parent.prependListener('show', showCascade)
         this.#parent.prependListener('hide', hideCascade)
-        followParent && this.#parent.prependListener('move', moveCascade)
+        this.#parent.prependListener('resize', positionHandler)
+        followParent && this.#parent.prependListener('move', positionHandler)
 
         this.#window.once('close', () => {
             this.#parent.off('show', showCascade)
             this.#parent.off('hide', hideCascade)
-            followParent && this.#parent.off('move', moveCascade)
+            this.#parent.off('resize', positionHandler)
+            followParent && this.#parent.off('move', positionHandler)
             this.#window = null
             this.stopFind()
         })
 
         this.#searchableContents.prependOnceListener('destroyed', () => { this.close() })
         this.#searchableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
-    }
-
-    /**
-     * Set default findbar position.
-     * @param {Rectangle} parentBounds 
-     */
-    #setDefaultPosition(parentBounds) {
-        const s = this.#window.getSize()
-        this.#window.setBounds({
-            x: parentBounds.x + parentBounds.width - s[0] - 20,
-            y: parentBounds.y - ((s[1] / 4) | 0)
-        })
     }
 
     /**
@@ -238,6 +235,19 @@ class Findbar {
     #focusWindowAndHighlightInput() {
         this.#window.focus()
         this.#window.webContents.send('electron-findbar/input-focus')
+    }
+
+    /**
+     * Set default findbar position.
+     * @param {Rectangle} parentBounds 
+     * @param {Rectangle} findbarBounds
+     * @returns {x: number, y: number} position.
+     */
+    static #setDefaultPosition(parentBounds, findbarBounds) {
+        return {
+            x: parentBounds.x + parentBounds.width - findbarBounds.width - 20,
+            y: parentBounds.y - ((findbarBounds.height / 4) | 0)
+        }
     }
 
     /**
