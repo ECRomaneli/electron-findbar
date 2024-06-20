@@ -20,7 +20,7 @@ class Findbar {
     #customOptions
 
     /** @type {string} */
-    #lastValue = ''
+    #lastText = ''
 
     /** @type {boolean} */
     #followParent = process.platform !== 'darwin'
@@ -47,11 +47,11 @@ class Findbar {
     }
     
     /**
-     * Open the findbar.
+     * Open the findbar. If the findbar is already opened, focus the input text.
      */
     open() {
         if (this.#window) {
-            this.#focusInput()
+            this.#focusWindowAndHighlightInput()
             return
         }
         this.#window = new BrowserWindow(Findbar.#mergeStandardOptions(this.#customOptions, this.#parent))
@@ -73,19 +73,21 @@ class Findbar {
     }
 
     /**
-     * Get last queried value.
+     * Get last queried text.
      */
-    getLastValue() {
-        return this.#lastValue
+    getLastText() {
+        return this.#lastText
     }
 
     /**
      * Starts a request to find all matches for the text in the page.
      * @param {string} text Value to find in page.
+     * @param {boolean | void} skipInputUpdate Skip findbar input update.
      */
-    startFind(text) {
-        if (this.#lastValue = text) {
-            this.#searchableContents.findInPage(this.#lastValue, { findNext: true })
+    startFind(text, skipInputUpdate) {
+        skipInputUpdate || this.#window?.webContents.send('electron-findbar/text-change', text)
+        if (this.#lastText = text) {
+            this.#searchableContents.findInPage(this.#lastText, { findNext: true })
         } else {
             this.stopFind()
         }
@@ -99,7 +101,7 @@ class Findbar {
             this.#fixMove = false
         }
 
-        this.#searchableContents.findInPage(this.#lastValue, { forward: false })
+        this.#searchableContents.findInPage(this.#lastText, { forward: false })
     }
 
     /**
@@ -110,7 +112,7 @@ class Findbar {
             this.#fixMove = true
         }
 
-        this.#searchableContents.findInPage(this.#lastValue, { forward: true })
+        this.#searchableContents.findInPage(this.#lastText, { forward: true })
     }
 
     /**
@@ -166,32 +168,6 @@ class Findbar {
      */
     followParentWindow(follow) {
         this.#followParent = follow
-    }
-
-    /**
-     * Merge custom, defaults, and fixed options.
-     * @param {Electron.BrowserWindowConstructorOptions} options Custom options.
-     * @param {BaseWindow | void} parent Parent window, if any.
-     * @returns {Electron.BrowserWindowConstructorOptions} Merged options.
-     */
-    static #mergeStandardOptions(options, parent) {
-        if (!options) { options = {} }
-        options.width = options.width ?? 372
-        options.height = options.height ?? 52
-        options.resizable = options.resizable ?? false
-        options.movable = options.movable ?? false
-        options.acceptFirstMouse = options.acceptFirstMouse ?? true
-        options.parent = parent
-        options.frame = false
-        options.transparent = true
-        options.maximizable = false
-        options.minimizable = false
-        options.skipTaskbar = true
-        options.fullscreenable = false
-        if (!options.webPreferences) { options.webPreferences = {} }
-        options.webPreferences.nodeIntegration = true
-        options.webPreferences.contextIsolation = false
-        return options
     }
 
     /**
@@ -257,11 +233,37 @@ class Findbar {
     }
 
     /**
-     * Select input text.
+     * Focus the findbar and highlight the input text.
      */
-    #focusInput() {
+    #focusWindowAndHighlightInput() {
         this.#window.focus()
         this.#window.webContents.send('electron-findbar/input-focus')
+    }
+
+    /**
+     * Merge custom, defaults, and fixed options.
+     * @param {Electron.BrowserWindowConstructorOptions} options Custom options.
+     * @param {BaseWindow | void} parent Parent window, if any.
+     * @returns {Electron.BrowserWindowConstructorOptions} Merged options.
+     */
+    static #mergeStandardOptions(options, parent) {
+        if (!options) { options = {} }
+        options.width = options.width ?? 372
+        options.height = options.height ?? 52
+        options.resizable = options.resizable ?? false
+        options.movable = options.movable ?? false
+        options.acceptFirstMouse = options.acceptFirstMouse ?? true
+        options.parent = parent
+        options.frame = false
+        options.transparent = true
+        options.maximizable = false
+        options.minimizable = false
+        options.skipTaskbar = true
+        options.fullscreenable = false
+        if (!options.webPreferences) { options.webPreferences = {} }
+        options.webPreferences.nodeIntegration = true
+        options.webPreferences.contextIsolation = false
+        return options
     }
 }
 
@@ -269,13 +271,8 @@ class Findbar {
  * Define IPC events.
  */
 (({ ipcMain }) => {
-    ipcMain.handle('electron-findbar/initial-input', e => {
-        const findbar = e.sender.findbar
-        findbar.startFind(findbar.getLastValue())
-        return findbar.getLastValue()
-    })
-    
-    ipcMain.on('electron-findbar/input-change', (e, value) => e.sender.findbar.startFind(value))
+    ipcMain.handle('electron-findbar/last-text', e => e.sender.findbar.getLastText())
+    ipcMain.on('electron-findbar/input-change', (e, text) => e.sender.findbar.startFind(text, true))
     ipcMain.on('electron-findbar/previous', e => e.sender.findbar.findPrevious())
     ipcMain.on('electron-findbar/next', e => e.sender.findbar.findNext())
     ipcMain.on('electron-findbar/close', e => {
