@@ -8,7 +8,7 @@ class Findbar {
     #window
 
     /** @type {WebContents} */
-    #searchableContents
+    #findableContents
 
     /** */
     #matches
@@ -39,9 +39,9 @@ class Findbar {
      */
     constructor (parent, webContents) {
         this.#parent = parent
-        this.#searchableContents = webContents ?? parent.webContents
+        this.#findableContents = webContents ?? parent.webContents
         
-        if (!this.#searchableContents) {
+        if (!this.#findableContents) {
             throw new Error('There are no searchable web contents.')
         }
     }
@@ -55,7 +55,8 @@ class Findbar {
             return
         }
         this.#window = new BrowserWindow(Findbar.#mergeStandardOptions(this.#customOptions, this.#parent))
-        this.#window.webContents.findbar = this
+        this.#window.webContents._findbar = this
+        this.#findableContents._findbar = this
 
         this.#registerListeners()
 
@@ -89,7 +90,7 @@ class Findbar {
     startFind(text, skipInputUpdate) {
         skipInputUpdate || this.#window?.webContents.send('electron-findbar/text-change', text)
         if (this.#lastText = text) {
-            this.#searchableContents.findInPage(this.#lastText, { findNext: true })
+            this.#findableContents.findInPage(this.#lastText, { findNext: true })
         } else {
             this.stopFind()
         }
@@ -100,7 +101,7 @@ class Findbar {
      */
     findPrevious() {
         this.#matches.active === 1 && (this.#fixMove = false)
-        this.#searchableContents.findInPage(this.#lastText, { forward: false })
+        this.#findableContents.findInPage(this.#lastText, { forward: false })
     }
 
     /**
@@ -108,7 +109,7 @@ class Findbar {
      */
     findNext() {
         this.#matches.active === this.#matches.total && (this.#fixMove = true)
-        this.#searchableContents.findInPage(this.#lastText, { forward: true })
+        this.#findableContents.findInPage(this.#lastText, { forward: true })
     }
 
     /**
@@ -116,7 +117,7 @@ class Findbar {
      */
     stopFind() {
         this.isOpen() && this.#sendMatchesCount(0, 0)
-        this.#searchableContents.isDestroyed() || this.#searchableContents.stopFindInPage("clearSelection")
+        this.#findableContents.isDestroyed() || this.#findableContents.stopFindInPage("clearSelection")
     }
 
     /**
@@ -187,8 +188,8 @@ class Findbar {
             this.stopFind()
         })
 
-        this.#searchableContents.prependOnceListener('destroyed', () => { this.close() })
-        this.#searchableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
+        this.#findableContents.prependOnceListener('destroyed', () => { this.close() })
+        this.#findableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
     }
 
     /**
@@ -258,16 +259,17 @@ class Findbar {
 /**
  * Define IPC events.
  */
-(({ ipcMain }) => {
-    ipcMain.handle('electron-findbar/last-text', e => e.sender.findbar.getLastText())
-    ipcMain.on('electron-findbar/input-change', (e, text) => e.sender.findbar.startFind(text, true))
-    ipcMain.on('electron-findbar/previous', e => e.sender.findbar.findPrevious())
-    ipcMain.on('electron-findbar/next', e => e.sender.findbar.findNext())
-    ipcMain.on('electron-findbar/close', e => {
-        const findbar = e.sender.findbar
+(ipc => {
+    ipc.handle('electron-findbar/last-text', e => e.sender._findbar.getLastText())
+    ipc.on('electron-findbar/input-change', (e, text, skip) => e.sender._findbar.startFind(text, skip))
+    ipc.on('electron-findbar/previous', e => e.sender._findbar.findPrevious())
+    ipc.on('electron-findbar/next', e => e.sender._findbar.findNext())
+    ipc.on('electron-findbar/open', e => e.sender._findbar.open())
+    ipc.on('electron-findbar/close', e => {
+        const findbar = e.sender._findbar
         findbar.stopFind()
         findbar.close()
     })
-}) (require('electron'))
+}) (require('electron').ipcMain)
 
 module.exports = { Findbar }

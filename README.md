@@ -167,6 +167,24 @@ app.whenReady().then(() => {
 });
 ```
 
+## IPC Events
+
+As an alternative, the findbar can be controlled using IPC events in the `renderer` process of the `WebContents` provided during the findbar construction. Example:
+
+```js
+const $remote = (ipc => ({
+    getLastText: async () => ipc.invoke('electron-findbar/last-text'),
+    inputChange: (value) => { ipc.send('electron-findbar/input-change', value) },
+    previous: () => { ipc.send('electron-findbar/previous') },
+    next: () => { ipc.send('electron-findbar/next') },
+    open: () => { ipc.send('electron-findbar/open') },
+    close: () => { ipc.send('electron-findbar/close') },
+})) (require('electron').ipcRenderer)
+
+$remote.open()
+$remote.inputChange('findIt')
+```
+
 ## Notes
 
 There are some intentional differences from the Chrome findbar, such as the horizontal margins of the divider and the input text, which has been replaced by a search input to include a clear button (the "x" on the right side).

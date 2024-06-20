@@ -4,8 +4,8 @@
   "description": "Chrome-like findbar for your Electron app.",
   "main": "index.js",
   "scripts": {
-    "sample": "electron sample.js",
-    "test": "node test.js"
+    "sample": "electron test/sample.js",
+    "test": "node test/test.js"
   },
   "repository": {
     "type": "git",

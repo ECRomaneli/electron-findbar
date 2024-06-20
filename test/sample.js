@@ -1,5 +1,5 @@
 const { BrowserWindow, app, Menu, MenuItem } = require('electron')
-const { Findbar } = require('./index')
+const { Findbar } = require('../index')
 
 app.whenReady().then(() => {  
   const window = setupWindow()
@@ -8,8 +8,13 @@ app.whenReady().then(() => {
 })
 
 function setupWindow() {
-  const window = new BrowserWindow()
-  window.loadURL('https://github.com/ECRomaneli/electron-findbar#readme')
+  const window = new BrowserWindow({
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    }
+  })
+  window.loadFile(`${__dirname}/sample.html`)
   return window
 }
 

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample</title>
+</head>
+<body>
+    <input type="text" oninput="$remote.inputChange(event.target.value)">
+    <button onclick="$remote.open()">Open</button>
+    <button onclick="$remote.previous()">Previous</button>
+    <button onclick="$remote.next()">Next</button>
+    <button onclick="$remote.close()">Close</button>
+    <br>
+    <span>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec volutpat massa et suscipit tincidunt. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nam dictum massa id sapien tristique, in venenatis neque sollicitudin. Fusce accumsan augue arcu, sed rhoncus libero pretium vitae. Phasellus sed imperdiet ante. Maecenas ultrices, elit vitae aliquet tincidunt, elit enim maximus libero, id lacinia ex enim consequat justo. Sed sodales tristique augue sed maximus. Integer tincidunt mi ac arcu tempus, sed accumsan lorem bibendum. Sed in dictum nibh. Pellentesque posuere dui pulvinar sodales scelerisque. Ut nisi magna, vulputate ornare bibendum pharetra, accumsan sed tortor. Proin rhoncus interdum tincidunt. Suspendisse diam eros, ultrices eu volutpat in, vestibulum quis nunc.
+
+Sed sit amet dapibus eros. Quisque porttitor mi a nisl pretium molestie. Praesent tellus dui, vehicula a ex sed, faucibus congue mauris. Cras dictum, sapien tempus consequat luctus, dolor magna vestibulum risus, nec blandit diam nulla eget est. Curabitur vitae posuere dolor, accumsan vulputate felis. Cras eget iaculis ante. Nulla velit felis, aliquet vitae convallis nec, vehicula et nunc. Fusce dapibus vel eros non viverra. Fusce elit arcu, tempus eu enim in, rutrum mattis justo.
+
+Cras justo tellus, imperdiet et felis sed, iaculis varius lacus. Pellentesque posuere feugiat nisl, eu vulputate tortor. Proin volutpat tortor erat, feugiat pretium justo aliquam non. Maecenas nec neque ultricies diam rhoncus ullamcorper a vitae mauris. Integer ultricies euismod leo, nec facilisis diam volutpat et. Nulla eleifend ante egestas, imperdiet elit at, malesuada velit. Donec tincidunt eleifend libero. Integer congue pharetra scelerisque. In egestas lacus erat. Quisque aliquam massa lectus, eu semper massa ornare auctor. Cras sit amet auctor sem. Curabitur vitae tellus eu risus ultrices accumsan. Curabitur egestas eu lorem et efficitur. Sed nec turpis felis.
+
+Suspendisse vel euismod ante. Nunc sagittis quam ut gravida pulvinar. Sed at semper nisl, eu porttitor ante. Cras vitae dolor massa. Fusce tincidunt turpis at egestas pharetra. Donec vitae vestibulum ante. Cras erat dolor, finibus vitae auctor vel, varius dictum arcu. Nam porta arcu consectetur, posuere tellus at, laoreet metus. Ut faucibus tincidunt mi placerat fermentum.
+
+Aliquam ut pellentesque tellus, quis vulputate nisl. Phasellus vitae blandit nunc, eu sodales velit. Duis enim tellus, faucibus id arcu vitae, consectetur tempus mauris. Praesent commodo commodo dolor non malesuada. Donec sed dolor eget arcu tincidunt efficitur sit amet vel nisi. Sed consectetur tincidunt molestie. Nam at magna a odio rhoncus convallis id eu nunc. Nam luctus ut leo et viverra. Proin tempor libero vitae arcu laoreet, sed pharetra sapien rutrum. Nam nunc orci, aliquet sit amet dignissim nec, aliquet quis quam. Nulla facilisi.
+    </span>
+    <script>
+        const $remote = (ipc => ({
+            getLastText: async () => ipc.invoke('electron-findbar/last-text'),
+            inputChange: (value) => { ipc.send('electron-findbar/input-change', value) },
+            previous: () => { ipc.send('electron-findbar/previous') },
+            next: () => { ipc.send('electron-findbar/next') },
+            open: () => { ipc.send('electron-findbar/open') },
+            close: () => { ipc.send('electron-findbar/close') },
+        })) (require('electron').ipcRenderer)
+    </script>
+</body>
+</html>

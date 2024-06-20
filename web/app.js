@@ -1,15 +1,13 @@
-const { ipcRenderer } = require('electron')
-
-const $remote = {
-    getLastText: async () => ipcRenderer.invoke('electron-findbar/last-text'),
-    inputChange: (value) => { ipcRenderer.send('electron-findbar/input-change', value) },
-    previous: () => { ipcRenderer.send('electron-findbar/previous') },
-    next: () => { ipcRenderer.send('electron-findbar/next') },
-    close: () => { ipcRenderer.send('electron-findbar/close') },
-    onMatchesChange: (listener) => { ipcRenderer.on('electron-findbar/matches', listener) },
-    onInputFocus: (listener) => { ipcRenderer.on('electron-findbar/input-focus', listener) },
-    onTextChange: (listener) => { ipcRenderer.on('electron-findbar/text-change', listener) }
-}
+const $remote = (ipc => ({
+    getLastText: async () => ipc.invoke('electron-findbar/last-text'),
+    inputChange: (value) => { ipc.send('electron-findbar/input-change', value, true) },
+    previous: () => { ipc.send('electron-findbar/previous') },
+    next: () => { ipc.send('electron-findbar/next') },
+    close: () => { ipc.send('electron-findbar/close') },
+    onMatchesChange: (listener) => { ipc.on('electron-findbar/matches', listener) },
+    onInputFocus: (listener) => { ipc.on('electron-findbar/input-focus', listener) },
+    onTextChange: (listener) => { ipc.on('electron-findbar/text-change', listener) }
+})) (require('electron').ipcRenderer)
 
 let canRequest = true, canMove = false
 
@@ -49,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     $remote.onTextChange((_, text) => { inputEl.value = text })
 
     inputEl.value = await $remote.getLastText()
+    $remote.inputChange(inputEl.value)
     inputEl.setSelectionRange(0, inputEl.value.length)
     inputEl.focus()
 })
