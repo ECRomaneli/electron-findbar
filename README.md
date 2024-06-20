@@ -72,14 +72,6 @@ You can customize the Findbar window options using the `setWindowOptions` method
 findbar.setWindowOptions({ movable: true, resizable: true, alwaysOnTop: true });
 ```
 
-To handle the Findbar window directly after it is opened, use the `setWindowHandler` method:
-
-```js
-findbar.setWindowHandler(win => {
-    win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-});
-```
-
 The findbar has a default position handler which moves the findbar to the top-right corner. To change the position handler, use the `setPositionHandler`. The position handler is called when the parent window moves or resizes and provides both the parent and findbar bounds as parameters.
 
 ```js

@@ -25,9 +25,6 @@ class Findbar {
     /** @type {string} */
     #lastText = ''
 
-    /** @type {boolean} */
-    #followParent = process.platform !== 'darwin'
-
     /**
      * Workaround to fix "findInPage" bug - double-click to loop
      * @type {boolean | null}
@@ -102,10 +99,7 @@ class Findbar {
      * Select previous match if any.
      */
     findPrevious() {
-        if (this.#matches.active === 1) {
-            this.#fixMove = false
-        }
-
+        this.#matches.active === 1 && (this.#fixMove = false)
         this.#searchableContents.findInPage(this.#lastText, { forward: false })
     }
 
@@ -113,10 +107,7 @@ class Findbar {
      * Select next match if any.
      */
     findNext() {
-        if (this.#matches.active === this.#matches.total) {
-            this.#fixMove = true
-        }
-
+        this.#matches.active === this.#matches.total && (this.#fixMove = true)
         this.#searchableContents.findInPage(this.#lastText, { forward: true })
     }
 
@@ -172,22 +163,9 @@ class Findbar {
     }
 
     /**
-     * Set the findbar to follow the parent window. Default is true.
-     * 
-     * On darwin platform, the findbar follows the parent window by default. This method is set
-     * to false to not create a "move" event listener unnescessarily.
-     * @platform win32,linux
-     * @param {boolean} follow If true, the findbar will follow the parent window movement.
-     */
-    followParentWindow(follow) {
-        this.#followParent = follow
-    }
-
-    /**
      * Register all event listeners.
      */
     #registerListeners() {
-        const followParent = this.#followParent
         const showCascade = () => this.#window.isVisible() || this.#window.show()
         const hideCascade = () => this.#window.isVisible() && this.#window.hide()
         const positionHandler = () => {
@@ -198,13 +176,13 @@ class Findbar {
         this.#parent.prependListener('show', showCascade)
         this.#parent.prependListener('hide', hideCascade)
         this.#parent.prependListener('resize', positionHandler)
-        followParent && this.#parent.prependListener('move', positionHandler)
+        this.#parent.prependListener('move', positionHandler)
 
         this.#window.once('close', () => {
             this.#parent.off('show', showCascade)
             this.#parent.off('hide', hideCascade)
             this.#parent.off('resize', positionHandler)
-            followParent && this.#parent.off('move', positionHandler)
+            this.#parent.off('move', positionHandler)
             this.#window = null
             this.stopFind()
         })
