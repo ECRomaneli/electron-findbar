@@ -52,13 +52,13 @@ const { Findbar } = require('electron-findbar')
 
 ### Creating the Findbar Instance
 
-You can pass a `BrowserWindow` instance as a single parameter to use it as the parent window. The `BrowserWindow.WebContents` will be used as the searchable content:
+You can pass a `BrowserWindow` instance as a single parameter to use it as the parent window. The `BrowserWindow.WebContents` will be used as the findable content:
 
 ```js
 const findbar = new Findbar(browserWindow)
 ```
 
-Alternatively, you can provide a custom `WebContents` as the second parameter. In this case, the first parameter can be any `BaseWindow`, and the second parameter will be the searchable content:
+Alternatively, you can provide a custom `WebContents` as the second parameter. In this case, the first parameter can be any `BaseWindow`, and the second parameter will be the findable content:
 
 ```js
 const findbar = new Findbar(baseWindow, customWebContents)
@@ -88,14 +88,6 @@ The Findbar is a child window of the `BaseWindow` passed during construction. To
 ```js
 findbar.open()
 ```
-
-On MacOS, the findbar will follow the relative movement of the parent window by default and there is no way to change it. On Windows and Linux, this behavior is not default and is simulated by using the `move` event of the parent and can be disabled by using:
-
-```js
-findbar.followParentWindow(false)
-```
-
-> Enabled by default.
 
 ### Finding Text in the Page
 
