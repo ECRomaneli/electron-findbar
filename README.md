@@ -200,10 +200,6 @@ FindbarRemote.open()
 FindbarRemote.inputChange('findIt')
 ```
 
-## Notes
-
-There are some intentional differences from the Chrome findbar, such as the horizontal margins of the divider and the input text, which has been replaced by a search input to include a clear button (the "x" on the right side).
-
 ## Author
 
 Created by [Emerson Capuchi Romaneli](https://github.com/ECRomaneli) (@ECRomaneli).
