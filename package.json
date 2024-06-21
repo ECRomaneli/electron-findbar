@@ -13,10 +13,15 @@
   },
   "keywords": [
     "findbar",
+    "find-bar",
+    "find bar",
     "electron-findbar",
+    "electron-find-bar",
     "electron",
     "chrome-findbar",
-    "search"
+    "chrome-find-bar",
+    "search",
+    "search-bar"
   ],
   "author": "ECRomaneli",
   "license": "MIT",
