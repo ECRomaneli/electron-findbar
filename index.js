@@ -121,11 +121,27 @@ class Findbar {
     }
 
     /**
-     * Return if the findbar is open or not.
+     * Whether the findbar is opened.
      * @returns {boolean} True, if the findbar is open. Otherwise, false.
      */
     isOpen() {
         return !!this.#window
+    }
+
+    /**
+     * Whether the findbar is focused. If the findbar is closed, false will be returned.
+     * @returns {boolean} True, if the findbar is focused. Otherwise, false.
+     */
+    isFocused() {
+        return !!this.#window?.isFocused()
+    }
+
+    /**
+     * Whether the findbar is visible to the user in the foreground of the app. If the findbar is closed, false will be returned.
+     * @returns {boolean} True, if the findbar is visible. Otherwise, false.
+     */
+    isVisible() {
+        return !!this.#window?.isVisible()
     }
 
     /**
