@@ -22,7 +22,6 @@ function setupFindbar(window) {
   const findbar = new Findbar(window)
   findbar.setWindowOptions({ movable: true, resizable: true })
   findbar.setWindowHandler(win => { /* handle the findbar window */ })
-  findbar.open()
   return findbar
 }
 

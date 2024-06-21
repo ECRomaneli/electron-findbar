@@ -40,6 +40,7 @@ class Findbar {
     constructor (parent, webContents) {
         this.#parent = parent
         this.#findableContents = webContents ?? parent.webContents
+        this.#findableContents._findbar = this
         
         if (!this.#findableContents) {
             throw new Error('There are no searchable web contents.')
@@ -56,7 +57,6 @@ class Findbar {
         }
         this.#window = new BrowserWindow(Findbar.#mergeStandardOptions(this.#customOptions, this.#parent))
         this.#window.webContents._findbar = this
-        this.#findableContents._findbar = this
 
         this.#registerListeners()
 
@@ -90,7 +90,7 @@ class Findbar {
     startFind(text, skipInputUpdate) {
         skipInputUpdate || this.#window?.webContents.send('electron-findbar/text-change', text)
         if (this.#lastText = text) {
-            this.#findableContents.findInPage(this.#lastText, { findNext: true })
+            this.isOpen() && this.#findableContents.findInPage(this.#lastText, { findNext: true })
         } else {
             this.stopFind()
         }
@@ -101,7 +101,7 @@ class Findbar {
      */
     findPrevious() {
         this.#matches.active === 1 && (this.#fixMove = false)
-        this.#findableContents.findInPage(this.#lastText, { forward: false })
+        this.isOpen() && this.#findableContents.findInPage(this.#lastText, { forward: false })
     }
 
     /**
@@ -109,7 +109,7 @@ class Findbar {
      */
     findNext() {
         this.#matches.active === this.#matches.total && (this.#fixMove = true)
-        this.#findableContents.findInPage(this.#lastText, { forward: true })
+        this.isOpen() && this.#findableContents.findInPage(this.#lastText, { forward: true })
     }
 
     /**

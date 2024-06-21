@@ -47,7 +47,7 @@ All public methods are documented with JSDoc and can be referenced during import
 To import the Findbar class:
 
 ```js
-const { Findbar } = require('electron-findbar');
+const { Findbar } = require('electron-findbar')
 ```
 
 ### Creating the Findbar Instance
@@ -55,13 +55,13 @@ const { Findbar } = require('electron-findbar');
 You can pass a `BrowserWindow` instance as a single parameter to use it as the parent window. The `BrowserWindow.WebContents` will be used as the searchable content:
 
 ```js
-const findbar = new Findbar(browserWindow);
+const findbar = new Findbar(browserWindow)
 ```
 
 Alternatively, you can provide a custom `WebContents` as the second parameter. In this case, the first parameter can be any `BaseWindow`, and the second parameter will be the searchable content:
 
 ```js
-const findbar = new Findbar(baseWindow, customWebContents);
+const findbar = new Findbar(baseWindow, customWebContents)
 ```
 
 ### Configuring the Findbar
@@ -69,7 +69,7 @@ const findbar = new Findbar(baseWindow, customWebContents);
 You can customize the Findbar window options using the `setWindowOptions` method:
 
 ```js
-findbar.setWindowOptions({ movable: true, resizable: true, alwaysOnTop: true });
+findbar.setWindowOptions({ movable: true, resizable: true, alwaysOnTop: true })
 ```
 
 The findbar has a default position handler which moves the findbar to the top-right corner. To change the position handler, use the `setPositionHandler`. The position handler is called when the parent window moves or resizes and provides both the parent and findbar bounds as parameters.
@@ -78,7 +78,7 @@ The findbar has a default position handler which moves the findbar to the top-ri
 findbar.setPositionHandler((parentBounds, findbarBounds) => ({
     x: parentBounds.x + parentBounds.width - findbarBounds.width - 20,
     y: parentBounds.y - ((findbarBounds.height / 4) | 0)
-}));
+}))
 ```
 
 ### Opening the Findbar
@@ -86,7 +86,7 @@ findbar.setPositionHandler((parentBounds, findbarBounds) => ({
 The Findbar is a child window of the `BaseWindow` passed during construction. To open it use:
 
 ```js
-findbar.open();
+findbar.open()
 ```
 
 On MacOS, the findbar will follow the relative movement of the parent window by default and there is no way to change it. On Windows and Linux, this behavior is not default and is simulated by using the `move` event of the parent and can be disabled by using:
@@ -105,28 +105,28 @@ Once open, the Findbar appears by default in the top-right corner of the parent 
 /**
  * Retrieve the last queried value.
  */
-getLastValue();
+getLastValue()
 
 /**
  * Initiate a request to find all matches for the specified text on the page.
  * @param {string} text - The text to search for.
  */
-startFind(text);
+startFind(text)
 
 /**
  * Select the previous match, if available.
  */
-findPrevious();
+findPrevious()
 
 /**
  * Select the next match, if available.
  */
-findNext();
+findNext()
 
 /**
  * Stop the find request.
  */
-stopFind();
+stopFind()
 ```
 
 ### Closing the Findbar
@@ -134,7 +134,7 @@ stopFind();
 When the Findbar is closed, its window is destroyed to free memory resources. Use the following method to close the Findbar:
 
 ```js
-findbar.close();
+findbar.close()
 ```
 
 A new internal window will be created the next time the `open` method is called. There is no need to instantiate another Findbar for the same parent window.
@@ -144,32 +144,36 @@ A new internal window will be created the next time the `open` method is called.
 Here is a quick example demonstrating how to use the `electron-findbar`:
 
 ```js
-const { app, BrowserWindow } = require('electron');
-const { Findbar } = require('electron-findbar');
+const { app, BrowserWindow } = require('electron')
+const { Findbar } = require('electron-findbar')
 
 app.whenReady().then(() => {  
-  const window = new BrowserWindow();
-  window.loadURL('https://github.com/ECRomaneli/electron-findbar');
+  const window = new BrowserWindow()
+  window.loadURL('https://github.com/ECRomaneli/electron-findbar')
 
   // Create and configure the Findbar object
-  const findbar = new Findbar(window);
+  const findbar = new Findbar(window)
 
   // [OPTIONAL] Customize window options
-  findbar.setWindowOptions({ movable: true, resizable: true });
+  findbar.setWindowOptions({ movable: true, resizable: true })
 
   // [OPTIONAL] Handle the window object when the Findbar is opened
   findbar.setWindowHandler(win => {
-    win.webContents.openDevTools();
-  });
+    win.webContents.openDevTools()
+  })
 
   // Open the Findbar
-  findbar.open();
-});
+  findbar.open()
+})
 ```
 
 ## IPC Events
 
-As an alternative, the findbar can be controlled using IPC events in the `renderer` process of the `WebContents` provided during the findbar construction. Example:
+As an alternative, the findbar can be controlled using IPC events in the `renderer` process of the `WebContents` provided during the findbar construction.
+
+### ipcRenderer
+
+If the `contextIsolation` is enabled, the `electron-findbar/remote` will not be available, but the IPC events can be used directly through the preload script:
 
 ```js
 const $remote = (ipc => ({
@@ -183,6 +187,17 @@ const $remote = (ipc => ({
 
 $remote.open()
 $remote.inputChange('findIt')
+```
+
+### Remote module
+
+With the `contextIsolation` disabled, the remote library is available to use:
+
+```js
+const FindbarRemote = require('electron-findbar/remote')
+
+FindbarRemote.open()
+FindbarRemote.inputChange('findIt')
 ```
 
 ## Notes
