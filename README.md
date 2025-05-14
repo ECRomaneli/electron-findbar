@@ -39,7 +39,7 @@ All public methods are documented with JSDoc and can be referenced during import
 To import the Findbar class:
 
 ```js
-const { Findbar } = require('electron-findbar')
+const Findbar = require('electron-findbar')
 ```
 
 ### Creating the Findbar Instance
@@ -137,7 +137,7 @@ Here is a quick example demonstrating how to use the `electron-findbar`:
 
 ```js
 const { app, BrowserWindow } = require('electron')
-const { Findbar } = require('electron-findbar')
+const Findbar = require('electron-findbar')
 
 app.whenReady().then(() => {  
   const window = new BrowserWindow()

@@ -1,5 +1,5 @@
 const { BrowserWindow, app, Menu, MenuItem } = require('electron')
-const { Findbar } = require('../index')
+const Findbar = require('../index')
 
 app.whenReady().then(() => {  
   const window = setupWindow()

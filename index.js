@@ -289,4 +289,4 @@ class Findbar {
     })
 }) (require('electron').ipcMain)
 
-module.exports = { Findbar }
+module.exports = Findbar
