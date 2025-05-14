@@ -260,7 +260,8 @@ class Findbar {
         options.acceptFirstMouse = options.acceptFirstMouse ?? true
         options.parent = parent
         options.frame = false
-        options.transparent = true
+        options.roundedCorners = true
+        options.transparent = process.platform === 'linux'
         options.maximizable = false
         options.minimizable = false
         options.skipTaskbar = true
