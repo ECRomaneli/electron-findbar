@@ -8,18 +8,10 @@
     Chrome-like findbar for your Electron application
 </p>
 <p align='center'>
-    <a href="https://github.com/ECRomaneli/electron-findbar/tags" style='text-decoration:none'>
-        <img src="https://img.shields.io/github/v/tag/ecromaneli/electron-findbar?label=version&sort=semver&style=for-the-badge" alt="Version">
-    </a>
-    <a href="https://github.com/ECRomaneli/electron-findbar/commits/master" style='text-decoration:none'>
-        <img src="https://img.shields.io/github/last-commit/ecromaneli/electron-findbar?style=for-the-badge" alt="Last Commit">
-    </a>
-    <a href="https://github.com/ECRomaneli/electron-findbar/blob/master/LICENSE" style='text-decoration:none'>
-        <img src="https://img.shields.io/github/license/ecromaneli/electron-findbar?style=for-the-badge" alt="License">
-    </a>
-    <a href="https://github.com/ECRomaneli/electron-findbar/issues" style='text-decoration:none'>
-        <img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=for-the-badge" alt="Contributions Welcome">
-    </a>
+    <a href="https://github.com/ECRomaneli/electron-findbar/tags"><img src="https://img.shields.io/github/v/tag/ecromaneli/electron-findbar?label=version&sort=semver&style=for-the-badge" alt="Version"></a>
+    <a href="https://github.com/ECRomaneli/electron-findbar/commits/master"><img src="https://img.shields.io/github/last-commit/ecromaneli/electron-findbar?style=for-the-badge" alt="Last Commit"></a>
+    <a href="https://github.com/ECRomaneli/electron-findbar/blob/master/LICENSE"><img src="https://img.shields.io/github/license/ecromaneli/electron-findbar?style=for-the-badge" alt="License"></a>
+    <a href="https://github.com/ECRomaneli/electron-findbar/issues"><img src="https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=for-the-badge" alt="Contributions Welcome"></a>
 </p>
 
 ## Installation
