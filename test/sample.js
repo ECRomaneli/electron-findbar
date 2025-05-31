@@ -27,10 +27,10 @@ function setupFindbar(window) {
 }
 
 function setupApplicationMenu(findbar) {
-  const appMenu = new Menu()
+  const appMenu = Menu.getApplicationMenu() ?? new Menu() // Your menu here
   appMenu.append(new MenuItem({ label: 'Findbar', submenu: [
     { label: 'Open', click: () => findbar.open(), accelerator: 'CommandOrControl+F' },
-    { label: 'Close', click: () => findbar.isOpen() && findbar.close(), accelerator: 'Esc' },
+    { label: 'Close', click: () => findbar.close(), accelerator: 'Esc' },
     { role: 'toggleDevTools', accelerator: 'CommandOrControl+Shift+I' },
     { label: 'Test input propagation', click: () => {
       let count = 0

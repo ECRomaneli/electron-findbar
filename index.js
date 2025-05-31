@@ -19,8 +19,8 @@ class Findbar {
     /** @type {(findbarWindow: BrowserWindow) => void} */
     #windowHandler
 
-    /** @type {{parentBounds: Rectangle, findbarBounds: Rectangle} => {x: number, y: number}} */
-    #positionHandler = Findbar.#setDefaultPosition
+    /** @type {{parentBounds: Rectangle, findbarBounds: Rectangle} => Rectangle} */
+    #boundsHandler = Findbar.#setDefaultPosition
 
     /** @type {BrowserWindowConstructorOptions} */
     #customOptions
@@ -72,9 +72,6 @@ class Findbar {
         this.#window.webContents._findbar = this
 
         this.#registerListeners()
-
-        const pos = this.#positionHandler(this.#parent.getBounds(), this.#window.getBounds())
-        this.#window.setPosition(pos.x, pos.y)
 
         this.#windowHandler && this.#windowHandler(this.#window)
         
@@ -212,12 +209,12 @@ class Findbar {
     }
 
     /**
-     * Set a bounds handler to calculate the findbar bounds when the parent window resizes.
-     * @param {(parentBounds: Rectangle, findbarBounds: Rectangle) => {x: number, y: number}} boundsHandler - Bounds handler function.
+     * Set a bounds handler to calculate the findbar bounds when the parent window resizes. If width and/or height are not provided, the current value will be used.
+     * @param {(parentBounds: Rectangle, findbarBounds: Rectangle) => Rectangle} boundsHandler - Bounds handler function.
      * @returns {void}
      */
     setBoundsHandler(boundsHandler) {
-        this.#positionHandler = boundsHandler
+        this.#boundsHandler = boundsHandler
     }
 
     /**
@@ -238,21 +235,26 @@ class Findbar {
     #registerListeners() {
         const showCascade = () => this.#window.isVisible() || this.#window.show()
         const hideCascade = () => this.#window.isVisible() && this.#window.hide()
-        const positionHandler = () => {
-            const pos = this.#positionHandler(this.#parent.getBounds(), this.#window.getBounds())
-            this.#window.setPosition(pos.x, pos.y)
+        const boundsHandler = () => {
+            const currentBounds = this.#window.getBounds()
+            const newBounds = this.#boundsHandler(this.#parent.getBounds(), currentBounds)
+            if (!newBounds.width) { newBounds.width = currentBounds.width }
+            if (!newBounds.height) { newBounds.height = currentBounds.height }
+            this.#window.setBounds(newBounds, false)
         }
+
+        boundsHandler()
         
         this.#parent.prependListener('show', showCascade)
         this.#parent.prependListener('hide', hideCascade)
-        this.#parent.prependListener('resize', positionHandler)
-        this.#parent.prependListener('move', positionHandler)
+        this.#parent.prependListener('resize', boundsHandler)
+        this.#parent.prependListener('move', boundsHandler)
 
         this.#window.once('close', () => {
             this.#parent.off('show', showCascade)
             this.#parent.off('hide', hideCascade)
-            this.#parent.off('resize', positionHandler)
-            this.#parent.off('move', positionHandler)
+            this.#parent.off('resize', boundsHandler)
+            this.#parent.off('move', boundsHandler)
             this.#window = null
             this.stopFind()
         })
