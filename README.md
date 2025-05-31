@@ -1,8 +1,5 @@
 <p align='center'>
-    <a href="https://github.com/ECRomaneli/handbook" style='text-decoration:none'>
-        <img src="https://i.postimg.cc/sXwqJP59/findbar-v2-light.png" alt='Findbar Light Theme'>
-        <img src="https://i.postimg.cc/j26XXRVV/findbar-v2-dark.png" alt='Findbar Dark Theme'>
-    </a>
+    <a href="https://github.com/ECRomaneli/electron-findbar" style='text-decoration:none'><img src="https://i.postimg.cc/sXwqJP59/findbar-v2-light.png" alt='Findbar Light Theme'><img src="https://i.postimg.cc/j26XXRVV/findbar-v2-dark.png" alt='Findbar Dark Theme'></a>
 </p>
 <p align='center'>
     Chrome-like findbar for your Electron application
