@@ -11,28 +11,37 @@ body {
 
 nav {
     --bg-color: #fff;
-    --border: #eee;
+    --border: #ddd;
     --color: #626262;
-    --input-color: #1f1f1f;
+    --input-color: #111;
     --btn-hover-color: #ccc;
     --btn-active-color: #bbb;
     --font-family: system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue","Noto Sans","Liberation Sans",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
     --font-size: .75rem;
-    --spacing: .75rem;
+    --spacing: .5rem;
 }
 
 @media (prefers-color-scheme: dark) {
     nav {
         --bg-color: #1f1f1f;
-        --border: #2f2f2f;
+        --border: #3f3f3f;
         --color: #a9a9aa;
-        --input-color: #e3e3e3;
+        --input-color: #eee;
         --btn-hover-color: #333;
         --btn-active-color: #444;
     }
 }
 
-svg {
+#match-case {
+    fill: var(--color);
+    user-select: none;
+}
+
+#match-case > svg {
+    width: 20px;
+}
+
+#previous, #next, #close {
     fill: none;
     stroke: var(--color);
     stroke-width: 2;
@@ -50,13 +59,10 @@ nav {
     color: var(--color);
     border-radius: 10px;
     border: 1px solid var(--border);
-    -webkit-app-region: drag;
-    app-region: drag;
 }
 
-nav > *:not(:last-child),
-.btn-group > *:not(:last-child) {
-    margin-right: var(--spacing);
+nav, .btn-group {
+    gap: var(--spacing);
 }
 
 span, input {
@@ -65,6 +71,7 @@ span, input {
 }
 
 span {
+    color: var(--input-color);
     user-select: none;
 }
 
@@ -75,8 +82,6 @@ input {
     font-weight: 500;
     border: none;
     outline: none;
-    -webkit-app-region: no-drag;
-    app-region: no-drag;
 }
 
 .divider {
@@ -89,27 +94,45 @@ input {
     display: flex;
 }
 
-.btn-group > div {
+button {
+    background-color: transparent;
+    border: none;
     border-radius: 50%;
     cursor: default;
     width: 26px;
     height: 26px;
     padding: 3px;
     text-align: center;
-    transition: .1s linear all;
-    -webkit-app-region: no-drag;
-    app-region: no-drag;
+    transition: .2s linear all;
 }
 
-.btn-group > div:hover {
+button:hover {
     background-color: var(--btn-hover-color);
 }
 
-.btn-group > div:active {
+button:active {
     background-color: var(--btn-active-color);
 }
 
-.btn-group > .disabled {
+button:focus {
+    outline: none;
+}
+
+button.disabled {
     opacity: .4;
+}
+
+#previous.disabled, #next.disabled {
     background-color: transparent !important;
+}
+
+nav.movable {
+    -webkit-app-region: drag;
+    app-region: drag;
+}
+
+input, button {
+    -webkit-app-region: no-drag;
+    app-region: no-drag;
+    
 }

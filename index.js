@@ -1,5 +1,8 @@
 const { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions, Rectangle } = require('electron')
 
+/**
+ * Chrome-like findbar for Electron applications.
+ */
 class Findbar {
     /** @type {BaseWindow} */
     #parent
@@ -10,7 +13,7 @@ class Findbar {
     /** @type {WebContents} */
     #findableContents
 
-    /** */
+    /** @type { { active: number, total: number } } */
     #matches
 
     /** @type {(findbarWindow: BrowserWindow) => void} */
@@ -25,6 +28,12 @@ class Findbar {
     /** @type {string} */
     #lastText = ''
 
+    /** @type {boolean} */
+    #matchCase = false
+
+    /** @type {boolean} */
+    #isMovable = false
+
     /**
      * Workaround to fix "findInPage" bug - double-click to loop
      * @type {boolean | null}
@@ -33,9 +42,10 @@ class Findbar {
 
     /**
      * Prepare the findbar.
-     * @param {BaseWindow} parent Parent window.
-     * @param {WebContents | void} webContents Searchable web contents. If not set and the parent is a BrowserWindow, 
+     * @param {BaseWindow} parent - Parent window.
+     * @param {WebContents | void} webContents - Searchable web contents. If not set and the parent is a BrowserWindow, 
      * the web contents of the parent will be used. Otherwise, an error will be triggered.
+     * @throws {Error} When no searchable web contents are found.
      */
     constructor (parent, webContents) {
         this.#parent = parent
@@ -49,13 +59,16 @@ class Findbar {
     
     /**
      * Open the findbar. If the findbar is already opened, focus the input text.
+     * @returns {void}
      */
     open() {
         if (this.#window) {
             this.#focusWindowAndHighlightInput()
             return
         }
-        this.#window = new BrowserWindow(Findbar.#mergeStandardOptions(this.#customOptions, this.#parent))
+        const options = Findbar.#mergeStandardOptions(this.#customOptions, this.#parent)
+        this.#isMovable = options.movable
+        this.#window = new BrowserWindow(options)
         this.#window.webContents._findbar = this
 
         this.#registerListeners()
@@ -70,6 +83,7 @@ class Findbar {
 
     /**
      * Close the findbar.
+     * @returns {void}
      */
     close() {
         if (!this.#window || this.#window.isDestroyed()) { return }
@@ -79,53 +93,72 @@ class Findbar {
     }
 
     /**
-     * Get last queried text.
+     * Get the last state of the findbar.
+     * @returns {{ text: string, matchCase: boolean, movable: boolean }} Last state of the findbar.
      */
-    getLastText() {
-        return this.#lastText
+    getLastState() {
+        return { text: this.#lastText, matchCase: this.#matchCase, movable: this.#isMovable }
     }
 
     /**
      * Starts a request to find all matches for the text in the page.
-     * @param {string} text Value to find in page.
-     * @param {boolean | void} skipInputUpdate Skip findbar input update.
+     * @param {string} text - Value to find in page.
+     * @param {boolean} [skipRendererEvent=false] - Skip update renderer event.
+     * @returns {void}
      */
-    startFind(text, skipInputUpdate) {
-        skipInputUpdate || this.#window?.webContents.send('electron-findbar/text-change', text)
+    startFind(text, skipRendererEvent) {
+        skipRendererEvent || this.#window?.webContents.send('electron-findbar/text-change', text)
         if (this.#lastText = text) {
-            this.isOpen() && this.#findableContents.findInPage(this.#lastText, { findNext: true })
+            this.isOpen() && this.#findInContent({ findNext: true })
         } else {
             this.stopFind()
         }
     }
 
     /**
+     * Whether the search should be case-sensitive. If not set, the search will be case-insensitive.
+     * @param {boolean} status - Whether the search should be case-sensitive. Default is false.
+     * @param {boolean} [skipRendererEvent=false] - Skip update renderer event.
+     * @returns {void}
+     */
+    matchCase(status, skipRendererEvent) {
+        if (this.#matchCase === status) { return }
+        this.#matchCase = status
+        skipRendererEvent || this.#window?.webContents.send('electron-findbar/match-case-change', this.#matchCase)
+        this.#stopFindInContent()
+        this.startFind(this.#lastText, skipRendererEvent)
+    }
+
+    /**
      * Select previous match if any.
+     * @returns {void}
      */
     findPrevious() {
         this.#matches.active === 1 && (this.#fixMove = false)
-        this.isOpen() && this.#findableContents.findInPage(this.#lastText, { forward: false })
+        this.isOpen() && this.#findInContent({ forward: false })
     }
 
     /**
      * Select next match if any.
+     * @returns {void}
      */
     findNext() {
         this.#matches.active === this.#matches.total && (this.#fixMove = true)
-        this.isOpen() && this.#findableContents.findInPage(this.#lastText, { forward: true })
+        this.isOpen() && this.#findInContent({ forward: true })
     }
 
     /**
-     * Stops the find request.
+     * Stops the find request and clears selection.
+     * @returns {void}
      */
     stopFind() {
         this.isOpen() && this.#sendMatchesCount(0, 0)
-        this.#findableContents.isDestroyed() || this.#findableContents.stopFindInPage("clearSelection")
+        this.#findableContents.isDestroyed() || this.#stopFindInContent()
     }
 
     /**
      * Whether the findbar is opened.
-     * @returns {boolean} True, if the findbar is open. Otherwise, false.
+     * @returns {boolean} True if the findbar is open, otherwise false.
      */
     isOpen() {
         return !!this.#window
@@ -133,15 +166,16 @@ class Findbar {
 
     /**
      * Whether the findbar is focused. If the findbar is closed, false will be returned.
-     * @returns {boolean} True, if the findbar is focused. Otherwise, false.
+     * @returns {boolean} True if the findbar is focused, otherwise false.
      */
     isFocused() {
         return !!this.#window?.isFocused()
     }
 
     /**
-     * Whether the findbar is visible to the user in the foreground of the app. If the findbar is closed, false will be returned.
-     * @returns {boolean} True, if the findbar is visible. Otherwise, false.
+     * Whether the findbar is visible to the user in the foreground of the app. 
+     * If the findbar is closed, false will be returned.
+     * @returns {boolean} True if the findbar is visible, otherwise false.
      */
     isVisible() {
         return !!this.#window?.isVisible()
@@ -160,7 +194,9 @@ class Findbar {
      * - options.fullscreenable (value: false)
      * - options.webPreferences.nodeIntegration (value: true)
      * - options.webPreferences.contextIsolation (value: false)
-     * @param {BrowserWindowConstructorOptions} customOptions Custom window options.
+     * 
+     * @param {BrowserWindowConstructorOptions} customOptions - Custom window options.
+     * @returns {void}
      */
     setWindowOptions(customOptions) {
         this.#customOptions = customOptions
@@ -168,18 +204,32 @@ class Findbar {
 
     /**
      * Set a window handler capable of changing the findbar window settings after opening.
-     * @param {(findbarWindow: BrowserWindow) => void} windowHandler Window handler.
+     * @param {(findbarWindow: BrowserWindow) => void} windowHandler - Window handler function.
+     * @returns {void}
      */
     setWindowHandler(windowHandler) {
         this.#windowHandler = windowHandler
     }
 
     /**
-     * Set a bounds handler to calculate the findbar bounds when the parent resizes.
-     * @param {{parentBounds: Rectangle, findbarBounds: Rectangle} => Rectangle} boundsHandler Bounds handler.
+     * Set a bounds handler to calculate the findbar bounds when the parent window resizes.
+     * @param {(parentBounds: Rectangle, findbarBounds: Rectangle) => {x: number, y: number}} boundsHandler - Bounds handler function.
+     * @returns {void}
      */
     setBoundsHandler(boundsHandler) {
         this.#positionHandler = boundsHandler
+    }
+
+    /**
+     * @param {Electron.FindInPageOptions} options 
+     */
+    #findInContent(options) {
+        options.matchCase = this.#matchCase
+        this.#findableContents.findInPage(this.#lastText, options)
+    }
+
+    #stopFindInContent() {
+        this.#findableContents.stopFindInPage('clearSelection')
     }
 
     /**
@@ -285,8 +335,9 @@ class Findbar {
  * Define IPC events.
  */
 (ipc => {
-    ipc.handle('electron-findbar/last-text', e => e.sender._findbar.getLastText())
+    ipc.handle('electron-findbar/last-state', e => e.sender._findbar.getLastState())
     ipc.on('electron-findbar/input-change', (e, text, skip) => e.sender._findbar.startFind(text, skip))
+    ipc.on('electron-findbar/match-case', (e, status, skip) => e.sender._findbar.matchCase(status, skip))
     ipc.on('electron-findbar/previous', e => e.sender._findbar.findPrevious())
     ipc.on('electron-findbar/next', e => e.sender._findbar.findNext())
     ipc.on('electron-findbar/open', e => e.sender._findbar.open())

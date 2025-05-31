@@ -5,30 +5,37 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self'; default-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; font-src 'self'; img-src 'self'">
-    <title>Findbar</title>
+    <title>Find in page</title>
     <link rel="stylesheet" href="app.css">
 <body>
-    <nav>
-        <input id='input' type="text" spellcheck="false">
+    <nav class="movable">
+        <input id="input" type="text" spellcheck="false">
         <span id="matches"></span>
+        <button id="match-case" class="disabled" title="Match case">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="none">
+                <text x="4" y="15" font-size="14" font-family="monospace" font-weight="bold">A</text>
+                <text x="12" y="19" font-size="14" font-family="monospace">a</text>
+            </svg>
+        </button>
         <div class="divider"></div>
         <div class="btn-group">
-            <div id="previous" class="disabled">
+            
+            <button id="previous" class="disabled" title="Previous">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 15L12 10L17 15"/>
                 </svg>
-            </div>
-            <div id="next" class="disabled">
+            </button>
+            <button id="next" class="disabled" title="Next">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 10L12 15L17 10"/>
                 </svg>
-            </div>
-            <div id="close">
+            </button>
+            <button id="close" title="Close">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 17.5L12 12.5L17 17.5"/>
                     <path d="M7 7.5L12 12.5L17 7.5"/>
                 </svg>
-            </div>
+            </button>
         </div>
     </nav>
 </body>

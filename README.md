@@ -89,38 +89,6 @@ The Findbar is a child window of the `BaseWindow` passed during construction. To
 findbar.open()
 ```
 
-### Finding Text in the Page
-
-Once open, the Findbar appears by default in the top-right corner of the parent window and can be used without additional coding. Alternatively, you can use the following methods to trigger `findInPage` and navigate through matches in the main process:
-
-```js
-/**
- * Retrieve the last queried value.
- */
-getLastValue()
-
-/**
- * Initiate a request to find all matches for the specified text on the page.
- * @param {string} text - The text to search for.
- */
-startFind(text)
-
-/**
- * Select the previous match, if available.
- */
-findPrevious()
-
-/**
- * Select the next match, if available.
- */
-findNext()
-
-/**
- * Stop the find request.
- */
-stopFind()
-```
-
 ### Closing the Findbar
 
 When the Findbar is closed, its window is destroyed to free memory resources. Use the following method to close the Findbar:
@@ -150,13 +118,71 @@ app.whenReady().then(() => {
   findbar.setWindowOptions({ movable: true, resizable: true })
 
   // [OPTIONAL] Handle the window object when the Findbar is opened
-  findbar.setWindowHandler(win => {
-    win.webContents.openDevTools()
-  })
+  findbar.setWindowHandler(win => { win.webContents.openDevTools() })
 
   // Open the Findbar
   findbar.open()
 })
+```
+
+### Finding Text using the main process
+
+Once open, the Findbar appears by default in the top-right corner of the parent window and can be used without additional coding. Alternatively, you can use the following methods to trigger `findInPage` and navigate through matches in the main process:
+
+```js
+/**
+ * Get the last state of the findbar.
+ * @returns {{ text: string, matchCase: boolean, movable: boolean }} Last state of the findbar.
+ */
+getLastState()
+
+/**
+ * Initiate a request to find all matches for the specified text on the page.
+ * @param {string} text - The text to search for.
+ * @param {boolean} [skipRendererEvent=false] - Skip update renderer event.
+ */
+startFind(text, skipRendererEvent)
+
+/**
+ * Whether the search should be case-sensitive.
+ * @param {boolean} status - Whether the search should be case-sensitive. Default is false.
+ * @param {boolean} [skipRendererEvent=false] - Skip update renderer event.
+ */
+matchCase(status, skipRendererEvent)
+
+/**
+ * Select the previous match, if available.
+ */
+findPrevious()
+
+/**
+ * Select the next match, if available.
+ */
+findNext()
+
+/**
+ * Stop the find request and clears selection.
+ */
+stopFind()
+
+/**
+ * Whether the findbar is opened.
+ * @returns {boolean} True if the findbar is open, otherwise false.
+ */
+isOpen()
+
+/**
+ * Whether the findbar is focused. If the findbar is closed, false will be returned.
+ * @returns {boolean} True if the findbar is focused, otherwise false.
+ */
+isFocused()
+
+/**
+ * Whether the findbar is visible to the user in the foreground of the app.
+ * If the findbar is closed, false will be returned.
+ * @returns {boolean} True if the findbar is visible, otherwise false.
+ */
+isVisible()
 ```
 
 ## IPC Events
@@ -169,12 +195,12 @@ If the `contextIsolation` is enabled, the `electron-findbar/remote` will not be 
 
 ```js
 const $remote = (ipc => ({
-    getLastText: async () => ipc.invoke('electron-findbar/last-text'),
+    getLastState: async () => ipc.invoke('electron-findbar/last-state'),
     inputChange: (value) => { ipc.send('electron-findbar/input-change', value) },
+    matchCase: (value) => { ipc.send('electron-findbar/match-case', value) },
     previous: () => { ipc.send('electron-findbar/previous') },
     next: () => { ipc.send('electron-findbar/next') },
-    open: () => { ipc.send('electron-findbar/open') },
-    close: () => { ipc.send('electron-findbar/close') },
+    close: () => { ipc.send('electron-findbar/close') }
 })) (require('electron').ipcRenderer)
 
 $remote.open()
