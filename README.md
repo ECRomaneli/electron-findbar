@@ -198,5 +198,5 @@ Created by [Emerson Capuchi Romaneli](https://github.com/ECRomaneli) (@ECRomanel
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/ECRomaneli/handbook/blob/master/LICENSE).
+This project is licensed under the [MIT License](https://github.com/ECRomaneli/electron-findbar/blob/master/LICENSE).
 

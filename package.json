@@ -1,8 +1,14 @@
 {
   "name": "electron-findbar",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Chrome-like findbar for your Electron app.",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "remote.js",
+    "LICENSE",
+    "web/**"
+  ],
   "scripts": {
     "sample": "electron test/sample.js"
   },
