@@ -41,20 +41,38 @@ class Findbar {
     #fixMove = null
 
     /**
-     * Prepare the findbar.
-     * @param {BaseWindow} parent - Parent window.
-     * @param {WebContents | void} webContents - Searchable web contents. If not set and the parent is a BrowserWindow, 
-     * the web contents of the parent will be used. Otherwise, an error will be triggered.
-     * @throws {Error} When no searchable web contents are found.
+     * Configure the findbar and link to the web contents.
+     * 
+     * @overload
+     * @param {BrowserWindow} browserWindow Parent window.
+     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the web contents of the BrowserWindow will be used.
+     * @returns {Findbar} The findbar instance if it exists.
+     *
+     * @overload
+     * @param {BaseWindow} baseWindow Parent window.
+     * @param {WebContents} webContents Findable web contents.
+     * @returns {Findbar} The findbar instance if it exists.
+     * @throws {Error} If no webContents is provided.
+     *     * 
+     * @overload
+     * @param {WebContents} webContents Findable web contents. The parent window will be undefined.
+     * @returns {Findbar} The findbar instance if it exists.
+     * @throws {Error} If no webContents is provided.
      */
     constructor (parent, webContents) {
-        this.#parent = parent
-        this.#findableContents = webContents ?? parent.webContents
-        this.#findableContents._findbar = this
-        
+        if (isFindable(parent)) {
+            this.#parent = void 0
+            this.#findableContents = parent
+        } else {
+            this.#parent = parent
+            this.#findableContents = webContents ?? parent.webContents
+        }
+
         if (!this.#findableContents) {
             throw new Error('There are no searchable web contents.')
         }
+
+        this.#findableContents._findbar = this
     }
     
     /**
@@ -242,19 +260,22 @@ class Findbar {
             if (!newBounds.height) { newBounds.height = currentBounds.height }
             this.#window.setBounds(newBounds, false)
         }
-
-        boundsHandler()
         
-        this.#parent.prependListener('show', showCascade)
-        this.#parent.prependListener('hide', hideCascade)
-        this.#parent.prependListener('resize', boundsHandler)
-        this.#parent.prependListener('move', boundsHandler)
+        if (this.#parent && !this.#parent.isDestroyed()) {
+            boundsHandler()
+            this.#parent.prependListener('show', showCascade)
+            this.#parent.prependListener('hide', hideCascade)
+            this.#parent.prependListener('resize', boundsHandler)
+            this.#parent.prependListener('move', boundsHandler)
+        }
 
         this.#window.once('close', () => {
-            this.#parent.off('show', showCascade)
-            this.#parent.off('hide', hideCascade)
-            this.#parent.off('resize', boundsHandler)
-            this.#parent.off('move', boundsHandler)
+            if (this.#parent && !this.#parent.isDestroyed()) {
+                this.#parent.off('show', showCascade)
+                this.#parent.off('hide', hideCascade)
+                this.#parent.off('resize', boundsHandler)
+                this.#parent.off('move', boundsHandler)
+            }
             this.#window = null
             this.stopFind()
         })
@@ -331,7 +352,45 @@ class Findbar {
         options.webPreferences.preload = options.webPreferences.preload ?? `${__dirname}/web/preload.js`
         return options
     }
+
+    /**
+     * Get the findbar instance for a given BrowserWindow or WebContents. 
+     * If no findbar instance exists, it will return a new one linked to the web contents.
+     * 
+     * @overload
+     * @param {BrowserWindow} browserWindow Parent window.
+     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the web contents of the BrowserWindow will be used.
+     * @returns {Findbar} The findbar instance if it exists.
+     * 
+     * @overload
+     * @param {WebContents} webContents Findable web contents. The parent window will be undefined.
+     * @returns {Findbar} The findbar instance if it exists.
+     * @throws {Error} If no webContents is provided.
+     * 
+     * @overload
+     * @param {BaseWindow} baseWindow Parent window.
+     * @param {WebContents} webContents Findable web contents.
+     * @returns {Findbar} The findbar instance if it exists.
+     * @throws {Error} If no webContents is provided.
+     */
+     static from(windowOrWebContents, customWebContents) {
+        let webContents = isFindable(windowOrWebContents) ?
+            windowOrWebContents : customWebContents ?? windowOrWebContents.webContents
+
+        return webContents._findbar || new Findbar(windowOrWebContents, customWebContents)
+    }
+
+    /**
+     * Get the findbar instance for a given BrowserWindow or WebContents. 
+     * @param {BrowserWindow | WebContents} windowOrWebContents
+     * @returns {Findbar | undefined} The findbar instance if it exists, otherwise undefined.
+     */
+    static fromIfExists(windowOrWebContents) {
+        return (isFindable(windowOrWebContents) ? windowOrWebContents : windowOrWebContents.webContents)._findbar
+    }
 }
+
+const isFindable = (obj) => obj && typeof obj.findInPage === 'function' && typeof obj.stopFindInPage === 'function';
 
 /**
  * Define IPC events.

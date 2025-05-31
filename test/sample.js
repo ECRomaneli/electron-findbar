@@ -20,7 +20,7 @@ function setupWindow() {
 }
 
 function setupFindbar(window) {
-  const findbar = new Findbar(window)
+  const findbar = Findbar.from(window.webContents)
   findbar.setWindowOptions({ movable: true, resizable: true })
   findbar.setWindowHandler(win => { /* handle the findbar window */ })
   return findbar
