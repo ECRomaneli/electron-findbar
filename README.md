@@ -83,7 +83,7 @@ const existingFindbar = Findbar.fromIfExists(webContents)
 You can customize the Findbar window options using the `setWindowOptions` method:
 
 ```js
-findbar.setWindowOptions({ movable: true, resizable: true, alwaysOnTop: true })
+findbar.setWindowOptions({ resizable: true, alwaysOnTop: true, height: 100 })
 ```
 
 To handle the Findbar window directly after it is opened, use the `setWindowHandler` method:
