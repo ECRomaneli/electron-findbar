@@ -71,7 +71,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const lastState = await $remote.getLastState()
     inputEl.value = lastState.text || ''
-    lastState.movable || document.getElementsByClassName('movable')[0].classList.remove('movable')
+    lastState.movable || document.body.classList.remove('movable')
+    if (process.platform === 'linux') {
+        document.body.classList.add('linux')
+    }
     toggleButton(matchCaseBtn, lastState.matchCase)
     $remote.inputChange(inputEl.value)
     inputEl.setSelectionRange(0, inputEl.value.length)

@@ -57,6 +57,9 @@ nav {
     padding: var(--spacing);
     background-color: var(--bg-color);
     color: var(--color);
+}
+
+.linux nav {
     border-radius: 10px;
     border: 1px solid var(--border);
 }
@@ -126,7 +129,7 @@ button.disabled {
     background-color: transparent !important;
 }
 
-nav.movable {
+.movable nav {
     -webkit-app-region: drag;
     app-region: drag;
 }
