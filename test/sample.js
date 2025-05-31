@@ -4,6 +4,7 @@ const Findbar = require('../index')
 app.whenReady().then(() => {  
   const window = setupWindow()
   const findbar = setupFindbar(window)
+  Menu.setApplicationMenu(null)
   setupApplicationMenu(findbar)
 })
 
@@ -21,12 +22,12 @@ function setupWindow() {
 function setupFindbar(window) {
   const findbar = new Findbar(window)
   findbar.setWindowOptions({ movable: true, resizable: true })
-  findbar.setWindowHandler(win => { /* handle the findbar window */ })
+  findbar.setWindowHandler(win => {/* handle the findbar window */ })
   return findbar
 }
 
 function setupApplicationMenu(findbar) {
-  const appMenu = Menu.getApplicationMenu()
+  const appMenu = new Menu()
   appMenu.append(new MenuItem({ label: 'Findbar', submenu: [
     { label: 'Open', click: () => findbar.open(), accelerator: 'CommandOrControl+F' },
     { label: 'Close', click: () => findbar.isOpen() && findbar.close(), accelerator: 'Esc' },
