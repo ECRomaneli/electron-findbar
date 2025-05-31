@@ -267,8 +267,9 @@ class Findbar {
         options.skipTaskbar = true
         options.fullscreenable = false
         if (!options.webPreferences) { options.webPreferences = {} }
-        options.webPreferences.nodeIntegration = true
-        options.webPreferences.contextIsolation = false
+        options.webPreferences.nodeIntegration = false
+        options.webPreferences.contextIsolation = true
+        options.webPreferences.preload = options.webPreferences.preload ?? `${__dirname}/web/preload.js`
         return options
     }
 }

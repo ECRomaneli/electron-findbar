@@ -4,25 +4,26 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self'; default-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; font-src 'self'; img-src 'self'">
     <title>Findbar</title>
     <link rel="stylesheet" href="app.css">
 <body>
     <nav>
-        <input id='input' oninput="inputChange(event)" type="text" spellcheck="false">
+        <input id='input' type="text" spellcheck="false">
         <span id="matches"></span>
         <div class="divider"></div>
         <div class="btn-group">
-            <div onclick="move(false)" class="disabled">
+            <div id="previous" class="disabled">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 15L12 10L17 15"/>
                 </svg>
             </div>
-            <div onclick="move(true)" class="disabled">
+            <div id="next" class="disabled">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 10L12 15L17 10"/>
                 </svg>
             </div>
-            <div onclick="$remote.close()">
+            <div id="close">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path d="M7 17.5L12 12.5L17 17.5"/>
                     <path d="M7 7.5L12 12.5L17 7.5"/>
@@ -30,8 +31,6 @@
             </div>
         </div>
     </nav>
-    
-    <script src="app.js"></script>
 </body>
 
 </html>

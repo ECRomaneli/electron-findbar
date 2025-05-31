@@ -25,8 +25,16 @@ function move(next) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const inputEl = document.getElementById('input')
+    const previousBtn = document.getElementById('previous')
+    const nextBtn = document.getElementById('next')
+    const closeBtn = document.getElementById('close')
     const matchesEl = document.getElementById('matches')
     const moveBtns = [...document.getElementsByClassName('disabled')]
+
+    previousBtn.addEventListener('click', () => move(false))
+    nextBtn.addEventListener('click', () => move(true))
+    closeBtn.addEventListener('click', () => $remote.close())
+    inputEl.addEventListener('input', inputChange)
 
     $remote.onMatchesChange((_, m) => {
         canRequest = true
