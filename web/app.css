@@ -51,6 +51,7 @@ nav {
     border-radius: 10px;
     border: 1px solid var(--border);
     -webkit-app-region: drag;
+    app-region: drag;
 }
 
 nav > *:not(:last-child),
@@ -75,6 +76,7 @@ input {
     border: none;
     outline: none;
     -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 
 .divider {
@@ -96,6 +98,7 @@ input {
     text-align: center;
     transition: .1s linear all;
     -webkit-app-region: no-drag;
+    app-region: no-drag;
 }
 
 .btn-group > div:hover {

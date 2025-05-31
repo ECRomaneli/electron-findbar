@@ -72,7 +72,10 @@ class Findbar {
      * Close the findbar.
      */
     close() {
-        this.#window?.close()
+        if (!this.#window || this.#window.isDestroyed()) { return }
+        if (!this.#window.isVisible()) { this.#window.close(); return }
+        this.#window.on('hide', () => { this.#window.close() })
+        this.#window.hide()
     }
 
     /**
@@ -204,6 +207,8 @@ class Findbar {
             this.stopFind()
         })
 
+        this.#window.prependOnceListener('ready-to-show', () => { this.#window.show() })
+
         this.#findableContents.prependOnceListener('destroyed', () => { this.close() })
         this.#findableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
     }
@@ -259,6 +264,7 @@ class Findbar {
         options.movable = options.movable ?? false
         options.acceptFirstMouse = options.acceptFirstMouse ?? true
         options.parent = parent
+        options.show = false
         options.frame = false
         options.roundedCorners = true
         options.transparent = process.platform === 'linux'
@@ -266,6 +272,7 @@ class Findbar {
         options.minimizable = false
         options.skipTaskbar = true
         options.fullscreenable = false
+        options.autoHideMenuBar = true
         if (!options.webPreferences) { options.webPreferences = {} }
         options.webPreferences.nodeIntegration = false
         options.webPreferences.contextIsolation = true
