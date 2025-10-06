@@ -101,10 +101,9 @@ class Findbar {
      * @returns {void}
      */
     close() {
-        if (!this.#window || this.#window.isDestroyed()) { return }
-        if (!this.#window.isVisible()) { this.#window.close(); return }
-        this.#window.on('hide', () => { this.#window.close() })
-        this.#window.hide()
+        if (this.#window && !this.#window.isDestroyed()) {
+            this.#window.close()
+        }
     }
 
     /**
