@@ -44,7 +44,7 @@ const Findbar = require('electron-findbar')
 You can pass a `BrowserWindow` instance as a single parameter to use it as the parent window. The `BrowserWindow.WebContents` will be used as the findable content:
 
 ```js
-// Create or retrieve the findbar associated to the browserWindow.webContents. If a new findbar is created, the browserWindow is used as parent.
+// Create or retrieve the findbar associated to the browserWindow.webContents or baseWindow.contentView.children[0]. If a new findbar is created, the browserWindow is used as parent.
 const findbar = Findbar.from(browserWindow)
 ```
 
@@ -55,10 +55,10 @@ Alternatively, you can provide a custom `WebContents` as the second parameter. I
 const findbar = Findbar.from(baseWindow, webContents)
 ```
 
-Is also possible to create a findbar without a parent window (even though it is not recommended):
+Is also possible to create a findbar providing only the web contents. The BaseWindow.getAllWindows() will be used to query for the parent window:
 
 ```js
-// Create or retrieve the findbar associated to the webContents. If a new findbar is created, it will be displayed in the middle of the screen without a parent to connect to.
+// Create or retrieve the findbar associated to the webContents.
 const findbar = Findbar.from(webContents)
 ```
 
@@ -146,9 +146,20 @@ app.whenReady().then(() => {
 })
 ```
 
-### Configuring Keyboard Shortcuts
+### Keyboard Shortcuts
 
-The Findbar component can be controlled using keyboard shortcuts. Below are two implementation approaches to help you integrate search functionality seamlessly into your application's user experience.
+The Findbar component can be controlled using keyboard shortcuts. The following shortcuts are available by default:
+
+| Shortcut | Description |
+|----------|-------------|
+| Enter | Move to next match |
+| Shift+Enter | Move to previous match |
+| Esc | Close the findbar |
+
+
+### Configuring Other Shortcuts
+
+Below are two implementation approaches to help you integrate search functionality seamlessly into your application's user experience.
 
 **Note:** The following examples demonstrate only the ideal (happy path) scenarios. For production use, make sure to thoroughly validate all inputs and handle edge cases appropriately.
 
@@ -157,27 +168,35 @@ The Findbar component can be controlled using keyboard shortcuts. Below are two 
 The `before-input-event` approach allows you to capture keyboard events directly in the main process before they're processed by the web contents, giving you precise control:
 
 ```js
-window.webContents.on('before-input-event', (event, input) => {
-  // Detect Ctrl+F (Windows/Linux) or Command+F (macOS)
-  if ((input.control || input.meta) && input.key.toLowerCase() === 'f') {
-    // Prevent default browser behavior
-    event.preventDefault()
-    
-    // Access and open the findbar
-    const findbar = Findbar.from(window)
-    if (findbar) {
-      findbar.open()
+webContents.on('before-input-event', (event, input) => {
+    if (input.shift || input.alt) { return }
+
+    const key = input.key.toLowerCase()
+
+    // Detect Ctrl+F (Windows/Linux) or Command+F (macOS)
+    if (input.control || input.meta) {
+        if (key === 'f') {
+            // Prevent default behavior
+            event.preventDefault()
+            
+            // Access and open the findbar
+            Findbar.from(webContents).open()
+        }
+        return
     }
-  }
-  
-  // Handle Escape key to close the findbar
-  if (input.key === 'Escape') {
-    const findbar = Findbar.from(window)
-    if (findbar && findbar.isOpen()) {
-      event.preventDefault()
-      findbar.close()
+
+    // Handle Escape key to close the findbar
+    if (key === 'escape') {
+      const findbar = Findbar.fromIfExists(webContents)
+
+      if (findbar?.isOpen()) {
+        // Prevent default behavior
+        event.preventDefault()
+
+        // Close the findbar
+        findbar.close()
+      }
     }
-  }
 })
 ```
 
@@ -198,12 +217,12 @@ appMenu.append(new MenuItem({
   submenu: [
     { 
       label: 'Find in Page', 
-      click: () => Findbar.from(parent)?.open(), 
+      click: () => Findbar.from(parent).open(), 
       accelerator: 'CommandOrControl+F' 
     },
     { 
       label: 'Close Find', 
-      click: () => Findbar.from(parent)?.close(), 
+      click: () => Findbar.from(parent).close(), 
       accelerator: 'Esc' 
     }
   ]

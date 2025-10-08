@@ -44,28 +44,29 @@ class Findbar {
      * Configure the findbar and link to the web contents.
      * 
      * @overload
+     * @param {WebContents} webContents Findable web contents. The parent window will be defined by using BaseWindow.getAllWindows() and
+     * matching the webContents with the webContents of the window or its contentView children.
+     * @returns {Findbar} The findbar instance if it exists.
+     * @throws {Error} If no webContents is provided.
+     * 
+     * @overload
      * @param {BrowserWindow} browserWindow Parent window.
-     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the web contents of the BrowserWindow will be used.
+     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the browserWindow.webContents will be used.
      * @returns {Findbar} The findbar instance if it exists.
      *
      * @overload
      * @param {BaseWindow} baseWindow Parent window.
-     * @param {WebContents} webContents Findable web contents.
-     * @returns {Findbar} The findbar instance if it exists.
-     * @throws {Error} If no webContents is provided.
-     *     * 
-     * @overload
-     * @param {WebContents} webContents Findable web contents. The parent window will be undefined.
+     * @param {WebContents} [webContents] Custom findable web contents. If not provided, the win.contentView.children[0] will be used.
      * @returns {Findbar} The findbar instance if it exists.
      * @throws {Error} If no webContents is provided.
      */
     constructor (parent, webContents) {
         if (isFindable(parent)) {
-            this.#parent = void 0
             this.#findableContents = parent
+            this.#parent = Findbar.#getBaseWindowFromWebContents(this.#findableContents)
         } else {
             this.#parent = parent
-            this.#findableContents = webContents ?? parent.webContents
+            this.#findableContents = webContents ?? Findbar.#retrieveWebContents(parent)
         }
 
         if (!this.#findableContents) {
@@ -74,7 +75,7 @@ class Findbar {
 
         this.#findableContents._findbar = this
     }
-    
+
     /**
      * Open the findbar. If the findbar is already opened, focus the input text.
      * @returns {void}
@@ -92,7 +93,6 @@ class Findbar {
         this.#registerListeners()
 
         this.#windowHandler && this.#windowHandler(this.#window)
-        
         this.#window.loadFile(`${__dirname}/web/findbar.html`)
     }
 
@@ -104,6 +104,16 @@ class Findbar {
         if (this.#window && !this.#window.isDestroyed()) {
             this.#window.close()
         }
+    }
+
+    /**
+     * Detach the findbar from the web contents and close it if opened. After detaching, the findbar instance will be unusable.
+     * @returns {void}
+     */
+    detach() {
+        this.close()
+        this.#findableContents._findbar = void 0
+        if (this.#window) { this.#window.webContents._findbar = void 0 }
     }
 
     /**
@@ -310,6 +320,24 @@ class Findbar {
     }
 
     /**
+     * Retrieve web contents from a BrowserWindow or BaseWindow.
+     * @param {BrowserWindow | BaseWindow} window 
+     * @returns {WebContents | undefined} The web contents if any.
+     */
+    static #retrieveWebContents(window) {
+        return window.webContents ?? window.contentView?.children[0]
+    }
+
+    /**
+     * Get the parent window from web contents.
+     * @param {WebContents} cont 
+     * @returns {BaseWindow | undefined} Parent window if any.
+     */
+    static #getBaseWindowFromWebContents(cont) {
+        return BaseWindow.getAllWindows().find(win => win.webContents === cont || win.contentView.children.some(child => child.webContents === cont))
+    }
+
+    /**
      * Set default findbar position.
      * @param {Rectangle} parentBounds 
      * @param {Rectangle} findbarBounds
@@ -357,25 +385,25 @@ class Findbar {
      * If no findbar instance exists, it will return a new one linked to the web contents.
      * 
      * @overload
-     * @param {BrowserWindow} browserWindow Parent window.
-     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the web contents of the BrowserWindow will be used.
-     * @returns {Findbar} The findbar instance if it exists.
-     * 
-     * @overload
-     * @param {WebContents} webContents Findable web contents. The parent window will be undefined.
+     * @param {WebContents} webContents Findable web contents. The parent window will be defined by using BaseWindow.getAllWindows() and
+     * matching the webContents with the webContents of the window or its contentView children.
      * @returns {Findbar} The findbar instance if it exists.
      * @throws {Error} If no webContents is provided.
      * 
      * @overload
+     * @param {BrowserWindow} browserWindow Parent window.
+     * @param {WebContents} [customWebContents] Custom findable web contents. If not provided, the browserWindow.webContents will be used.
+     * @returns {Findbar} The findbar instance if it exists.
+     *
+     * @overload
      * @param {BaseWindow} baseWindow Parent window.
-     * @param {WebContents} webContents Findable web contents.
+     * @param {WebContents} [webContents] Custom findable web contents. If not provided, the win.contentView.children[0] will be used.
      * @returns {Findbar} The findbar instance if it exists.
      * @throws {Error} If no webContents is provided.
      */
      static from(windowOrWebContents, customWebContents) {
-        let webContents = isFindable(windowOrWebContents) ?
-            windowOrWebContents : customWebContents ?? windowOrWebContents.webContents
-
+        const webContents = isFindable(windowOrWebContents) ? windowOrWebContents : customWebContents ?? Findbar.#retrieveWebContents(windowOrWebContents)
+        if (!webContents) { throw new Error('[Findbar] There are no searchable web contents.') }
         return webContents._findbar || new Findbar(windowOrWebContents, customWebContents)
     }
 
@@ -385,7 +413,9 @@ class Findbar {
      * @returns {Findbar | undefined} The findbar instance if it exists, otherwise undefined.
      */
     static fromIfExists(windowOrWebContents) {
-        return (isFindable(windowOrWebContents) ? windowOrWebContents : windowOrWebContents.webContents)._findbar
+        const webContents = isFindable(windowOrWebContents) ? windowOrWebContents : Findbar.#retrieveWebContents(windowOrWebContents)
+        if (!webContents) { throw new Error('[Findbar] There are no searchable web contents.') }
+        return webContents._findbar
     }
 }
 

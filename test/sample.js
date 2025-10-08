@@ -3,9 +3,9 @@ const Findbar = require('../index')
 
 app.whenReady().then(() => {  
   const window = setupWindow()
-  const findbar = setupFindbar(window)
+  setupFindbar(window)
   Menu.setApplicationMenu(null)
-  setupApplicationMenu(findbar)
+  setupApplicationMenu(window)
 })
 
 function setupWindow() {
@@ -19,26 +19,28 @@ function setupWindow() {
   return window
 }
 
-function setupFindbar(window) {
-  const findbar = Findbar.from(window)
+function setupFindbar(windowOrWebContents) {
+  const findbar = Findbar.from(windowOrWebContents)
   findbar.setWindowOptions({ movable: !true, resizable: true })
   findbar.setWindowHandler(win => { /* handle the findbar window */ })
-  return findbar
 }
 
-function setupApplicationMenu(findbar) {
+function setupApplicationMenu(window) {
   const appMenu = Menu.getApplicationMenu() ?? new Menu() // Your menu here
   appMenu.append(new MenuItem({ label: 'Findbar', submenu: [
-    { label: 'Open', click: () => findbar.open(), accelerator: 'CommandOrControl+F' },
-    { label: 'Close', click: () => findbar.close(), accelerator: 'Esc' },
+    { label: 'Open', click: () => Findbar.from(window).open(), accelerator: 'CommandOrControl+F' },
+    { label: 'Close', click: () => Findbar.from(window).close(), accelerator: 'Esc' },
     { role: 'toggleDevTools', accelerator: 'CommandOrControl+Shift+I' },
-    { label: 'Test input propagation', click: () => {
-      let count = 0
-      setInterval(() => {
-        findbar.startFind('count: ' + count++)
-        findbar.startFind('cannot show this', true)
-      }, 1000)
-    }}
+    { label: 'Test input propagation', click: () => testMenuHandler(window) }
   ]}))
   Menu.setApplicationMenu(appMenu)
+}
+
+function testMenuHandler(window) {
+  let count = 0
+  setInterval(() => {
+    // Both the parent window and the web contents can be used to get the findbar instance
+    Findbar.from(count % 2 ? window : window.webContents).startFind('count: ' + count++)
+    Findbar.from(window).startFind('cannot show this', true)
+  }, 1000)
 }
