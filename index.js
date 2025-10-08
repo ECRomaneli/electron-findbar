@@ -244,6 +244,32 @@ class Findbar {
         this.#boundsHandler = boundsHandler
     }
 
+    #registerKeyboardShortcuts(event, input) {
+        if (input.meta || input.control || input.alt) { return }
+
+        const key = input.key.toLowerCase()
+
+        if (input.shift) {
+            if (key === 'enter') {
+                this.findPrevious()
+                event.preventDefault()
+            }
+            return;
+        }
+
+        if (key === 'enter') {
+            this.findNext()
+            event.preventDefault()
+            return;
+        }
+
+        if (key === 'escape') {
+            if (this.isOpen()) {
+                this.close()
+                event.preventDefault()
+            }
+        }
+    }
     /**
      * @param {Electron.FindInPageOptions} options 
      */
@@ -290,6 +316,7 @@ class Findbar {
         })
 
         this.#window.prependOnceListener('ready-to-show', () => { this.#window.show() })
+        this.#window.webContents.prependListener('before-input-event', this.#registerKeyboardShortcuts.bind(this))
 
         this.#findableContents.prependOnceListener('destroyed', () => { this.close() })
         this.#findableContents.prependListener('found-in-page', (_e, result) => { this.#sendMatchesCount(result.activeMatchOrdinal, result.matches) })
