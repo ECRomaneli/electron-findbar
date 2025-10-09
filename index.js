@@ -74,6 +74,8 @@ class Findbar {
         }
 
         this.#findableContents._findbar = this
+
+        this.#findableContents.once('destroyed', () => { this.detach() })
     }
 
     /**
@@ -114,6 +116,17 @@ class Findbar {
         this.close()
         this.#findableContents._findbar = void 0
         if (this.#window) { this.#window.webContents._findbar = void 0 }
+    }
+
+    /**
+     * Update the parent window of the findbar.
+     * @param {BaseWindow} [newParent] - The new parent window. If not provided, the parent will be set to the window containing the web contents.
+     * @returns {void}
+     */
+    updateParentWindow(newParent) {
+        if (this.#parent === newParent) { return }
+        this.close()
+        this.#parent = newParent ?? Findbar.#getBaseWindowFromWebContents(this.#findableContents)
     }
 
     /**
@@ -304,7 +317,7 @@ class Findbar {
             this.#parent.prependListener('move', boundsHandler)
         }
 
-        this.#window.once('close', () => {
+        this.#window.once('closed', () => {
             if (this.#parent && !this.#parent.isDestroyed()) {
                 this.#parent.off('show', showCascade)
                 this.#parent.off('hide', hideCascade)

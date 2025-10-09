@@ -327,6 +327,49 @@ FindbarRemote.open()
 FindbarRemote.inputChange('findIt')
 ```
 
+## Changing the Parent Window
+
+There are scenarios where you might need to change the parent window.
+
+### Using updateParentWindow
+
+The `updateParentWindow` method allows you to change the parent window while preserving the findbar instance and its state:
+
+```javascript
+// Create a findbar for the initial window
+const findbar = Findbar.from(oldWindow, webContents)
+
+// Later, when you need to change the parent:
+findbar.updateParentWindow(newWindow)
+```
+
+This approach keeps the same findbar instance connected to the same webContents, but changes which window it's attached to. The findbar will close immediately.
+
+### Using detach
+
+Alternatively, the `detach` method disconnects a findbar instance from its webContents, allowing you to create a new instance in the next `Findbar.from` call:
+
+```javascript
+// Get the existing findbar
+const oldFindbar = Findbar.fromIfExists(webContents)
+
+// Detach it to free the association
+if (oldFindbar) {
+  oldFindbar.detach()
+}
+
+// Now create a new findbar with a different parent
+const newFindbar = Findbar.from([newWindow, ]webContents)
+```
+
+This approach is useful when you want to completely reset the findbar's configuration or when moving between very different window configurations.
+
+### Important Considerations
+
+- If the findbar is currently open when you change the parent window, it will automatically close.
+- Window options and handlers will be preserved when using `updateParentWindow`.
+- After calling `detach`, the old findbar instance can no longer be used.
+
 ## Author
 
 Created by [Emerson Capuchi Romaneli](https://github.com/ECRomaneli) (@ECRomaneli).
