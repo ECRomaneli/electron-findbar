@@ -368,16 +368,16 @@ class Findbar {
      * @returns {WebContents | undefined} The web contents if any.
      */
     static #retrieveWebContents(window) {
-        return window.webContents ?? window.contentView?.children[0]
+        return window.webContents ?? window.contentView?.children[0]?.webContents
     }
 
     /**
      * Get the parent window from web contents.
-     * @param {WebContents} cont 
+     * @param {WebContents} w 
      * @returns {BaseWindow | undefined} Parent window if any.
      */
-    static #getBaseWindowFromWebContents(cont) {
-        return BaseWindow.getAllWindows().find(win => win.webContents === cont || win.contentView.children.some(child => child.webContents === cont))
+    static #getBaseWindowFromWebContents(w) {
+        return BaseWindow.getAllWindows().find(win => win.webContents === w || win.contentView.children.some(child => child.webContents === w))
     }
 
     /**
