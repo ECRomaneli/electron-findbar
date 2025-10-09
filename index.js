@@ -14,7 +14,7 @@ class Findbar {
     #findableContents
 
     /** @type { { active: number, total: number } } */
-    #matches
+    #matches = { active: 0, total: 0 }
 
     /** @type {(findbarWindow: BrowserWindow) => void} */
     #windowHandler
@@ -171,6 +171,7 @@ class Findbar {
      * @returns {void}
      */
     findPrevious() {
+        if (this.#matches.total < 2) { return }
         this.#matches.active === 1 && (this.#fixMove = false)
         this.isOpen() && this.#findInContent({ forward: false })
     }
@@ -180,6 +181,7 @@ class Findbar {
      * @returns {void}
      */
     findNext() {
+        if (this.#matches.total < 2) { return }
         this.#matches.active === this.#matches.total && (this.#fixMove = true)
         this.isOpen() && this.#findInContent({ forward: true })
     }
@@ -346,7 +348,8 @@ class Findbar {
             this.#fixMove = null
         }
 
-        this.#matches = { active, total }
+        this.#matches.active = active
+        this.#matches.total = total
 
         this.#window.webContents.send('electron-findbar/matches', this.#matches)
     }
