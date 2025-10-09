@@ -13,7 +13,7 @@
 
 ## Installation
 
-Install the `electron-findbar` package via npm:
+Install the `electron-findbar` package via [npm](https://www.npmjs.com/package/electron-findbar):
 
 ```sh
 npm install electron-findbar
@@ -21,7 +21,7 @@ npm install electron-findbar
 
 ## Overview
 
-The `electron-findbar` is a `BrowserWindow` component designed to emulate the Chrome findbar layout, leveraging the `webContents.findInPage` method to navigate through matches. Inter-process communication (IPC) is used for interaction between the `main` and `renderer` processes.
+The `electron-findbar` package creates a `BrowserWindow`-based component designed to emulate the Chrome findbar layout, leveraging the `webContents.findInPage` method to navigate through matches. Inter-process communication (IPC) is used for interaction between the `main` and `renderer` processes.
 
 ### Memory Usage
 
@@ -55,14 +55,14 @@ Alternatively, you can provide a custom `WebContents` as the second parameter. I
 const findbar = Findbar.from(baseWindow, webContents)
 ```
 
-Is also possible to create a findbar providing only the web contents. The BaseWindow.getAllWindows() will be used to query for the parent window:
+It is also possible to create a findbar providing only the web contents. The BaseWindow.getAllWindows() will be used to query for the parent window:
 
 ```js
 // Create or retrieve the findbar associated to the webContents.
 const findbar = Findbar.from(webContents)
 ```
 
-**Note:** The findbar is ALWAYS linked to the webContents not the window. The parent is only the window to connect the events and stay on top. If the `.from(webContents)` is used to retrieve an existing findbar previously created with a parent, the findbar will stay connected to the parent.
+**Note:** The findbar is ALWAYS linked to the webContents, not the window. The parent is only the window to connect the events and stay on top. If the `.from(webContents)` is used to retrieve an existing findbar previously created with a parent, the findbar will stay connected to the parent.
 
 #### Retrieve if exists
 
@@ -305,10 +305,11 @@ If the `contextIsolation` is enabled, the `electron-findbar/remote` will not be 
 ```js
 const $remote = (ipc => ({
     getLastState: async () => ipc.invoke('electron-findbar/last-state'),
-    inputChange: (value) => { ipc.send('electron-findbar/input-change', value) },
+    inputChange: (text) => { ipc.send('electron-findbar/input-change', text) },
     matchCase: (value) => { ipc.send('electron-findbar/match-case', value) },
     previous: () => { ipc.send('electron-findbar/previous') },
     next: () => { ipc.send('electron-findbar/next') },
+    open: () => { ipc.send('electron-findbar/open') },
     close: () => { ipc.send('electron-findbar/close') }
 })) (require('electron').ipcRenderer)
 
