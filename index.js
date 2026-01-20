@@ -13,6 +13,9 @@ class Findbar {
     /** @type {WebContents} */
     #findableContents
 
+    /** @type {boolean} */
+    #propagateVisibilityEvents = true
+
     /** @type { { active: number, total: number } } */
     #matches = { active: 0, total: 0 }
 
@@ -63,9 +66,8 @@ class Findbar {
     constructor (parent, webContents) {
         if (isFindable(parent)) {
             this.#findableContents = parent
-            this.#parent = Findbar.#getBaseWindowFromWebContents(this.#findableContents)
+            parent = Findbar.#getBaseWindowFromWebContents(this.#findableContents)
         } else {
-            this.#parent = parent
             this.#findableContents = webContents ?? Findbar.#retrieveWebContents(parent)
         }
 
@@ -76,6 +78,7 @@ class Findbar {
         this.#findableContents._findbar = this
 
         this.#findableContents.once('destroyed', () => { this.detach() })
+        this.updateParentWindow(parent)
     }
 
     /**
@@ -87,6 +90,7 @@ class Findbar {
             this.#focusWindowAndHighlightInput()
             return
         }
+        if (!this.#parent) { this.updateParentWindow() }
         const options = Findbar.#mergeStandardOptions(this.#customOptions, this.#parent)
         this.#isMovable = options.movable
         this.#window = new BrowserWindow(options)
@@ -127,6 +131,9 @@ class Findbar {
         if (this.#parent === newParent) { return }
         this.close()
         this.#parent = newParent ?? Findbar.#getBaseWindowFromWebContents(this.#findableContents)
+        if (this.#parent && !this.#parent.isDestroyed()) {
+            this.#parent.once('closed', () => { this.#removeParent() })
+        }
     }
 
     /**
@@ -259,6 +266,15 @@ class Findbar {
         this.#boundsHandler = boundsHandler
     }
 
+    /**
+     * Set whether to propagate visibility events to the parent window. If true, when the parent window is shown/hidden, the findbar will also be shown/hidden.
+     * @param {boolean} shouldPropagate - Whether to propagate visibility events. Default is true.
+     * @returns {void}
+     */
+    propagateVisibilityEvents(shouldPropagate) {
+        this.#propagateVisibilityEvents = shouldPropagate
+    }
+
     #registerKeyboardShortcuts(event, input) {
         if (input.meta || input.control || input.alt) { return }
 
@@ -285,6 +301,12 @@ class Findbar {
             }
         }
     }
+
+    #removeParent() {
+        this.close()
+        this.#parent = null
+    }
+
     /**
      * @param {Electron.FindInPageOptions} options 
      */
@@ -313,16 +335,20 @@ class Findbar {
         
         if (this.#parent && !this.#parent.isDestroyed()) {
             boundsHandler()
-            this.#parent.prependListener('show', showCascade)
-            this.#parent.prependListener('hide', hideCascade)
+            if (this.#propagateVisibilityEvents) {
+                this.#parent.prependListener('show', showCascade)
+                this.#parent.prependListener('hide', hideCascade)
+            }
             this.#parent.prependListener('resize', boundsHandler)
             this.#parent.prependListener('move', boundsHandler)
         }
 
         this.#window.once('closed', () => {
             if (this.#parent && !this.#parent.isDestroyed()) {
-                this.#parent.off('show', showCascade)
-                this.#parent.off('hide', hideCascade)
+                if (this.#propagateVisibilityEvents) {
+                    this.#parent.off('show', showCascade)
+                    this.#parent.off('hide', hideCascade)
+                }
                 this.#parent.off('resize', boundsHandler)
                 this.#parent.off('move', boundsHandler)
             }
@@ -451,7 +477,7 @@ class Findbar {
     }
 
     /**
-     * Get the findbar instance for a given BrowserWindow or WebContents. 
+     * Get the findbar instance for a given BrowserWindow or WebContents.
      * @param {BrowserWindow | WebContents} windowOrWebContents
      * @returns {Findbar | undefined} The findbar instance if it exists, otherwise undefined.
      */

@@ -62,7 +62,7 @@ It is also possible to create a findbar providing only the web contents. The Bas
 const findbar = Findbar.from(webContents)
 ```
 
-**Note:** The findbar is ALWAYS linked to the webContents, not the window. The parent is only the window to connect the events and stay on top. If the `.from(webContents)` is used to retrieve an existing findbar previously created with a parent, the findbar will stay connected to the parent.
+**Note:** The findbar is ALWAYS linked to the webContents, not the window. The parent is only the window to connect the events and stay on top. If the `.from(webContents)` is used to retrieve an existing findbar previously created with a parent, the findbar will stay connected to the parent. If a different parent is used, the parent window is updated automatically.
 
 #### Retrieve if exists
 
@@ -338,7 +338,7 @@ The `updateParentWindow` method allows you to change the parent window while pre
 
 ```javascript
 // Create a findbar for the initial window
-const findbar = Findbar.from(oldWindow, webContents)
+const findbar = Findbar.from([oldWindow, ]webContents)
 
 // Later, when you need to change the parent:
 findbar.updateParentWindow(newWindow)
