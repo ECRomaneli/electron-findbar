@@ -1,5 +1,5 @@
 const { BaseWindow, WebContentsView, app, Menu, MenuItem } = require('electron')
-const Findbar = require('../index')
+const Findbar = require('electron-findbar');
 
 app.whenReady().then(() => {  
   const window = setupWindow()
@@ -9,19 +9,19 @@ app.whenReady().then(() => {
 })
 
 function setupWindow() {
-  const window = new BaseWindow({ width: 800, height: 600 })
+  const window = new BaseWindow({ width: 800, height: 600 });
   
   const view = new WebContentsView({
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
     }
-  })
-  window.contentView.addChildView(view)
-  view.setBounds({ x: 0, y: 0, width: 800, height: 600 })
-  view.webContents.loadFile(`${__dirname}/sample.html`)
+  });
+  window.contentView.addChildView(view);
+  view.setBounds({ x: 0, y: 0, width: 800, height: 600 });
+  view.webContents.loadFile(`${__dirname}/sample.html`);
   
-  return window
+  return window;
 }
 
 function renewWindow(window) {
