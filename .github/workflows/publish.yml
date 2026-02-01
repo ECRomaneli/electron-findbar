@@ -3,16 +3,16 @@ name: Build and Publish to npm
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+      - 'v[0-9]+.[0-9]+.[0-9]+-*'
 
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: read
       id-token: write
+      contents: read
     
     steps:
       - name: Checkout repository
@@ -20,14 +20,19 @@ jobs:
 
       - name: Get version from tag
         id: version
-        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "$VERSION" == *-* ]]; then
+            echo "DRY_RUN=true" >> $GITHUB_OUTPUT
+          else
+            echo "DRY_RUN=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          registry-url: 'https://registry.npmjs.org'
-
+          node-version: '25'
       - name: Update package.json version
         run: npm version ${{ steps.version.outputs.VERSION }} --no-git-tag-version
 
@@ -39,10 +44,14 @@ jobs:
 
       - name: Verify build output
         run: |
-          echo "📦 Publishing version ${{ steps.version.outputs.VERSION }}"
+          echo "📦 Version: ${{ steps.version.outputs.VERSION }}"
+          echo "🧪 Dry run: ${{ steps.version.outputs.DRY_RUN }}"
           ls -la dist/
 
+      - name: Publish to npm (Dry Run)
+        if: steps.version.outputs.DRY_RUN == 'true'
+        run: npm publish --dry-run
+
       - name: Publish to npm
+        if: steps.version.outputs.DRY_RUN == 'false'
         run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
