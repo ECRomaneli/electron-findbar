@@ -3,7 +3,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const InlineCssPlugin = require('./inline-css-plugin');
 
 const isDev = process.env.NODE_ENV === 'development';
-const devtool = isDev ? 'cheap-module-source-map' : false;
+const devtool = isDev ? 'source-map' : false;
 
 module.exports = [
   // Entry 1: Main process
