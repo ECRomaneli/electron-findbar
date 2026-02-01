@@ -8,7 +8,8 @@ const $remote = (ipc => ({
     onMatchesChange: (listener: Function) => { ipc.on('electron-findbar/matches', listener) },
     onInputFocus: (listener: Function) => { ipc.on('electron-findbar/input-focus', listener) },
     onTextChange: (listener: Function) => { ipc.on('electron-findbar/text-change', listener) },
-    onMatchCaseChange: (listener: Function) => { ipc.on('electron-findbar/match-case-change', listener) }
+    onMatchCaseChange: (listener: Function) => { ipc.on('electron-findbar/match-case-change', listener) },
+    onForceTheme: (listener: Function) => { ipc.on('electron-findbar/force-theme', listener) },
 })) (require('electron').ipcRenderer);
 
 let canRequest = true;
@@ -41,6 +42,11 @@ function buttonIsDisabled(btn: HTMLElement): boolean {
   return btn.classList.contains('disabled');
 }
 
+function changeTheme(theme: 'light' | 'dark' | 'system'): void {
+  document.body.classList.remove('light', 'dark');
+  if (theme !== 'system') { document.body.classList.add(theme); }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const inputEl = document.getElementById('input') as HTMLInputElement;
   const matchCaseBtn = document.getElementById('match-case') as HTMLButtonElement;
@@ -63,7 +69,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   $remote.onTextChange((_event: Event, text: string) => {
     inputEl.value = text;
-  })
+  });
 
   $remote.onInputFocus(() => {
     inputEl.setSelectionRange(0, inputEl.value.length);
@@ -78,9 +84,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     for (const moveBtn of moveBtns) {
       toggleButton(moveBtn, (canMove = m.total > 1));
     }
-  })
+  });
 
-  const lastState = await $remote.getLastState()
+  $remote.onForceTheme((_e: Event, theme: 'light' | 'dark' | 'system') => { changeTheme(theme); });
+
+  const lastState = await $remote.getLastState();
   inputEl.value = lastState.text || '';
   if (!lastState.movable) {
     document.body.classList.remove('movable');
@@ -88,6 +96,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (process.platform === 'linux') {
     document.body.classList.add('linux');
   }
+  changeTheme(lastState.theme);
   toggleButton(matchCaseBtn, lastState.matchCase);
   $remote.inputChange(inputEl.value);
   inputEl.setSelectionRange(0, inputEl.value.length);

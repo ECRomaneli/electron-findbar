@@ -9,6 +9,7 @@ interface LastState {
   text: string
   matchCase: boolean
   movable: boolean
+  theme: 'light' | 'dark' | 'system'
 }
 
 interface FindableWebContents extends WebContents {
@@ -33,6 +34,7 @@ type FindableBrowserWindow = BrowserWindow & { webContents: FindableWebContents 
  * Chrome-like findbar for Electron applications.
  */
 class Findbar {
+  private static defaultTheme: 'light' | 'dark' | 'system' = 'system';
   private parent?: FindableWindow;
   private window?: FindableBrowserWindow;
   private findableContents: FindableWebContents;
@@ -42,6 +44,7 @@ class Findbar {
   private boundsHandler: (parentBounds: Rectangle, findbarBounds: Rectangle) => Rectangle = Findbar.setDefaultPosition;
   private customOptions?: BrowserWindowConstructorOptions;
   private lastText: string = '';
+  private theme?: 'light' | 'dark' | 'system';
   private matchCaseFlag: boolean = false;
   private isMovableFlag: boolean = false;
   private fixMove?: boolean;
@@ -124,7 +127,7 @@ class Findbar {
    * Get the last state of the findbar.
    */
   getLastState(): LastState {
-    return { text: this.lastText, matchCase: this.matchCaseFlag, movable: this.isMovableFlag };
+    return { text: this.lastText, matchCase: this.matchCaseFlag, movable: this.isMovableFlag, theme: this.getTheme() };
   }
 
   /**
@@ -231,6 +234,39 @@ class Findbar {
     this.propagateVisibilityEventsFlag = shouldPropagate;
   }
 
+  /**
+   * Get the current theme of this findbar instance.
+   * @returns The current theme setting ('light', 'dark', or 'system').
+   */
+  getTheme(): 'light' | 'dark' | 'system' {
+    return this.theme ??= Findbar.defaultTheme;
+  }
+
+  /**
+   * Update the theme of the findbar. Only affects the current instance.
+   * @param theme - The theme to set. If not provided, uses the default theme.
+   */
+  updateTheme(theme: 'light' | 'dark' | 'system' = Findbar.defaultTheme): void {
+    this.theme = theme;
+    if (this.window && !this.window.isDestroyed()) {
+      this.window.webContents.send('electron-findbar/force-theme', theme);
+    }
+  }
+
+  /**
+   * Get the default theme.
+   */
+  static getDefaultTheme(): 'light' | 'dark' | 'system' {
+    return Findbar.defaultTheme;
+  }
+
+  /**
+   * Set the default theme for new findbar instances.
+   */
+  static setDefaultTheme(theme: 'light' | 'dark' | 'system'): void {
+    Findbar.defaultTheme = theme;
+  }
+ 
   private registerKeyboardShortcuts(event: any, input: any): void {
     if (input.meta || input.control || input.alt) { return; }
 
@@ -387,17 +423,10 @@ class Findbar {
   /**
    * Get the findbar instance for a given BrowserWindow or WebContents.
    */
-  static from(
-    windowOrWebContents: BaseWindow | BrowserWindow | WebContents,
-    customWebContents?: WebContents
-  ): Findbar {
-    const webContents = isFindable(windowOrWebContents)
-      ? windowOrWebContents
-      : customWebContents ?? Findbar.retrieveWebContents(windowOrWebContents)
-    if (!webContents) {
-      throw new Error('[Findbar] There are no searchable web contents.')
-    }
-    return (webContents as FindableWebContents)._findbar || new Findbar(windowOrWebContents, customWebContents)
+  static from(windowOrWebContents: BaseWindow | BrowserWindow | WebContents, customWebContents?: WebContents): Findbar {
+    const webContents = isFindable(windowOrWebContents) ? windowOrWebContents : customWebContents ?? Findbar.retrieveWebContents(windowOrWebContents)
+    if (!webContents) { throw new Error('[Findbar] There are no searchable web contents.'); }
+    return (webContents as FindableWebContents)._findbar || new Findbar(windowOrWebContents, customWebContents);
   }
 
   /**

@@ -258,7 +258,7 @@ Once open, the Findbar appears by default in the top-right corner of the parent 
 ```js
 /**
  * Get the last state of the findbar.
- * @returns {{ text: string, matchCase: boolean, movable: boolean }} Last state of the findbar.
+ * @returns {{ text: string, matchCase: boolean, movable: boolean, theme: 'light' | 'dark' | 'system' }} Last state of the findbar.
  */
 getLastState()
 
@@ -309,6 +309,30 @@ isFocused()
  * @returns {boolean} True if the findbar is visible, otherwise false.
  */
 isVisible()
+
+/**
+ * Get the current theme of this findbar instance.
+ * @returns {'light' | 'dark' | 'system'} The current theme setting.
+ */
+getTheme()
+
+/**
+ * Update the theme of the findbar. Only affects the current instance.
+ * @param {'light' | 'dark' | 'system'} theme - The theme to set. If not provided, uses the default theme.
+ */
+updateTheme(theme)
+
+/**
+ * Get the default theme for new findbar instances.
+ * @returns {'light' | 'dark' | 'system'} The default theme setting.
+ */
+static getDefaultTheme()
+
+/**
+ * Set the default theme for new findbar instances.
+ * @param {'light' | 'dark' | 'system'} theme - The theme to set as default.
+ */
+static setDefaultTheme(theme)
 ```
 
 ## IPC Events
@@ -322,13 +346,17 @@ If the `contextIsolation` is enabled, the `electron-findbar/remote` will not be 
 ```js
 const $remote = (ipc => ({
     getLastState: async () => ipc.invoke('electron-findbar/last-state'),
-    inputChange: (text) => { ipc.send('electron-findbar/input-change', text) },
-    matchCase: (value) => { ipc.send('electron-findbar/match-case', value) },
+    inputChange: (value: string) => { ipc.send('electron-findbar/input-change', value, true) },
+    matchCase: (value: boolean) => { ipc.send('electron-findbar/match-case', value, true) },
     previous: () => { ipc.send('electron-findbar/previous') },
     next: () => { ipc.send('electron-findbar/next') },
-    open: () => { ipc.send('electron-findbar/open') },
-    close: () => { ipc.send('electron-findbar/close') }
-})) (require('electron').ipcRenderer)
+    close: () => { ipc.send('electron-findbar/close') },
+    onMatchesChange: (listener: Function) => { ipc.on('electron-findbar/matches', listener) },
+    onInputFocus: (listener: Function) => { ipc.on('electron-findbar/input-focus', listener) },
+    onTextChange: (listener: Function) => { ipc.on('electron-findbar/text-change', listener) },
+    onMatchCaseChange: (listener: Function) => { ipc.on('electron-findbar/match-case-change', listener) },
+    onForceTheme: (listener: Function) => { ipc.on('electron-findbar/force-theme', listener) },
+})) (require('electron').ipcRenderer);
 
 $remote.open()
 $remote.inputChange('findIt')

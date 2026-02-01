@@ -7,9 +7,6 @@ body {
     padding: 0;
     font-weight: normal;
     height: 100vh;
-}
-
-nav {
     --bg-color: #fff;
     --border: #ddd;
     --color: #626262;
@@ -21,8 +18,17 @@ nav {
     --spacing: .5rem;
 }
 
+body.dark {
+    --bg-color: #1f1f1f;
+    --border: #3f3f3f;
+    --color: #a9a9aa;
+    --input-color: #eee;
+    --btn-hover-color: #333;
+    --btn-active-color: #444;
+}
+
 @media (prefers-color-scheme: dark) {
-    nav {
+    body:not(.light) {
         --bg-color: #1f1f1f;
         --border: #3f3f3f;
         --color: #a9a9aa;
