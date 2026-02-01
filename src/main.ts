@@ -447,23 +447,25 @@ const isFindable = (obj: any): obj is WebContents =>
  */
 (() => {
   ipcMain.handle('electron-findbar/last-state', (e: IpcMainInvokeEvent) =>
-    (e.sender as FindableWebContents)._findbar!.getLastState()
+    Findbar.fromIfExists(e.sender)?.getLastState()
   )
   ipcMain.on('electron-findbar/input-change', (e: IpcMainEvent, text: string, skip?: boolean) =>
-    (e.sender as FindableWebContents)._findbar!.startFind(text, skip)
+    Findbar.fromIfExists(e.sender)?.startFind(text, skip)
   )
   ipcMain.on('electron-findbar/match-case', (e: IpcMainEvent, status: boolean, skip?: boolean) =>
-    (e.sender as FindableWebContents)._findbar!.matchCase(status, skip)
+    Findbar.fromIfExists(e.sender)?.matchCase(status, skip)
   )
   ipcMain.on('electron-findbar/previous', (e: IpcMainEvent) =>
-    (e.sender as FindableWebContents)._findbar!.findPrevious()
+    Findbar.fromIfExists(e.sender)?.findPrevious()
   )
-  ipcMain.on('electron-findbar/next', (e: IpcMainEvent) => (e.sender as FindableWebContents)._findbar!.findNext());
-  ipcMain.on('electron-findbar/open', (e: IpcMainEvent) => (e.sender as FindableWebContents)._findbar!.open());
+  ipcMain.on('electron-findbar/next', (e: IpcMainEvent) => Findbar.fromIfExists(e.sender)?.findNext());
+  ipcMain.on('electron-findbar/open', (e: IpcMainEvent) => Findbar.from(e.sender).open());
   ipcMain.on('electron-findbar/close', (e: IpcMainEvent) => {
-    const findbar = (e.sender as FindableWebContents)._findbar!;
-    findbar.stopFind();
-    findbar.close();
+    const findbar = Findbar.fromIfExists(e.sender);
+    if (findbar) {
+      findbar.stopFind();
+      findbar.close();
+    }
   });
 })();
 
