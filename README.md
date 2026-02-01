@@ -19,23 +19,6 @@ Install the `electron-findbar` package via [npm](https://www.npmjs.com/package/e
 npm install electron-findbar
 ```
 
-## Development & Build
-
-This project is written in **TypeScript** and uses **Webpack** for bundling and minification.
-
-### Prerequisites
-
-- Node.js >= 12.0.0
-- npm
-
-### Setup
-
-Install dependencies:
-
-```sh
-npm install
-```
-
 ## Overview
 
 The `electron-findbar` package creates a `BrowserWindow`-based component designed to emulate the Chrome findbar layout, leveraging the `webContents.findInPage` method to navigate through matches. Inter-process communication (IPC) is used for interaction between the `main` and `renderer` processes.
@@ -191,7 +174,8 @@ webContents.on('before-input-event', (event, input) => {
     const key = input.key.toLowerCase()
 
     // Detect Ctrl+F (Windows/Linux) or Command+F (macOS)
-    if (input.control || input.meta) {
+    const isMac = process.platform === 'darwin'
+    if ((isMac && input.meta) || (!isMac && input.control)) {
         if (key === 'f') {
             // Prevent default behavior
             event.preventDefault()

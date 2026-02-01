@@ -1,3 +1,20 @@
+## Development & Build
+
+This project is written in **TypeScript** and uses **Webpack** for bundling and minification.
+
+### Prerequisites
+
+- Node.js >= 12.0.0
+- npm
+
+### Setup
+
+Install dependencies:
+
+```sh
+npm install
+```
+
 ### Build
 
 Build the project for production (minified):
