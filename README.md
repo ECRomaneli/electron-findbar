@@ -323,6 +323,12 @@ getTheme()
 updateTheme(theme)
 
 /**
+ * Set whether the findbar will follow the parent window visibility events. Default is true.
+ * If false, the findbar will not hide with the parent window automatically.
+ */
+followVisibilityEvents(shouldFollow: boolean = true)
+
+/**
  * Get the default theme for new findbar instances.
  * @returns {'light' | 'dark' | 'system'} The default theme setting.
  */

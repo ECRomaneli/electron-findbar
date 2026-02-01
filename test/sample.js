@@ -40,14 +40,13 @@ function setupFindbar(windowOrWebContents) {
 function setupApplicationMenu(window) {
   const appMenu = Menu.getApplicationMenu() ?? new Menu(); // Your menu here
   appMenu.append(new MenuItem({ label: 'Findbar', submenu: [
-    { label: 'Open', click: () => {
-      Findbar.from(window).open();
-    }, accelerator: 'CommandOrControl+F' },
+    { label: 'Open', click: () => Findbar.from(window).open(), accelerator: 'CommandOrControl+F' },
     { label: 'Close', click: () => Findbar.fromIfExists(window)?.close(), accelerator: 'Esc' },
     { label: 'Detach', click: () => Findbar.fromIfExists(window)?.detach() },
     { label: 'toggleDevTools', accelerator: 'CommandOrControl+Shift+I', click: () => { window.contentView.children[0].webContents.openDevTools() } },
     { label: 'Test input propagation', click: () => testMenuHandler(window) },
-    { label: 'Test renew Window', click: () => window = renewWindow(window) }
+    { label: 'Test renew Window', click: () => window = renewWindow(window) },
+    { label: 'Test hide/show parent window', click: () => { window.hide(); setTimeout(() => window.show(), 2000); }, accelerator: 'CommandOrControl+H' },
   ]}))
   Menu.setApplicationMenu(appMenu);
 }

@@ -38,7 +38,7 @@ class Findbar {
   private parent?: FindableWindow;
   private window?: FindableBrowserWindow;
   private findableContents: FindableWebContents;
-  private propagateVisibilityEventsFlag: boolean = true;
+  private followVisibilityEventsFlag: boolean = true;
   private matches: Matches = { active: 0, total: 0 };
   private windowHandler?: (findbarWindow: BrowserWindow) => void;
   private boundsHandler: (parentBounds: Rectangle, findbarBounds: Rectangle) => Rectangle = Findbar.setDefaultPosition;
@@ -228,10 +228,11 @@ class Findbar {
   }
 
   /**
-   * Set whether to propagate visibility events to the parent window.
-   */
-  propagateVisibilityEvents(shouldPropagate: boolean): void {
-    this.propagateVisibilityEventsFlag = shouldPropagate;
+   * Set whether the findbar will follow the parent window "show" and "hide" events. Default is true.
+   * If false, the findbar will not hide automatically with the parent window.
+  */
+  followVisibilityEvents(shouldFollow: boolean): void {
+    this.followVisibilityEventsFlag = shouldFollow;
   }
 
   /**
@@ -309,25 +310,23 @@ class Findbar {
   }
 
   private registerListeners(): void {
-    const showCascade = () => this.window!.isVisible() || this.window!.show();
-    const hideCascade = () => this.window!.isVisible() && this.window!.hide();
+    const showCascade = () => { this.window!.isVisible() || this.window!.show(); };
+    const hideCascade = () => { this.window!.isVisible() && this.window!.hide(); };
     const boundsHandler = () => {
       const currentBounds = this.window!.getBounds();
       const newBounds = this.boundsHandler(this.parent!.getBounds(), currentBounds);
-      if (!newBounds.width) {
-        newBounds.width = currentBounds.width;
-      }
-      if (!newBounds.height) {
-        newBounds.height = currentBounds.height;
-      }
+      if (!newBounds.width) { newBounds.width = currentBounds.width; }
+      if (!newBounds.height) { newBounds.height = currentBounds.height; }
       this.window!.setBounds(newBounds, false);
     }
 
     if (this.parent && !this.parent.isDestroyed()) {
       boundsHandler();
-      if (this.propagateVisibilityEventsFlag) {
+      if (this.followVisibilityEventsFlag) {
         this.parent.prependListener('show', showCascade);
         this.parent.prependListener('hide', hideCascade);
+        // this.parent.on('restore', showCascade);
+        // this.parent.on('minimize', hideCascade);
       }
       this.parent.prependListener('resize', boundsHandler);
       this.parent.prependListener('move', boundsHandler);
@@ -335,9 +334,11 @@ class Findbar {
 
     this.window!.once('closed', () => {
       if (this.parent && !this.parent.isDestroyed()) {
-        if (this.propagateVisibilityEventsFlag) {
+        if (this.followVisibilityEventsFlag) {
           this.parent.off('show', showCascade);
           this.parent.off('hide', hideCascade);
+          // this.parent.off('restore', showCascade);
+          // this.parent.off('minimize', hideCascade);
         }
         this.parent.off('resize', boundsHandler);
         this.parent.off('move', boundsHandler);
