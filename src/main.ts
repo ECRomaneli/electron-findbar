@@ -35,16 +35,18 @@ type FindableBrowserWindow = BrowserWindow & { webContents: FindableWebContents 
  */
 class Findbar {
   private static defaultTheme: 'light' | 'dark' | 'system' = 'system';
+  private static defaultWindowHandler?: (findbarWindow: BrowserWindow) => void;
+  private static defaultBoundsHandler = Findbar.setDefaultPosition;
   private parent?: FindableWindow;
   private window?: FindableBrowserWindow;
   private findableContents: FindableWebContents;
   private followVisibilityEventsFlag: boolean = true;
   private matches: Matches = { active: 0, total: 0 };
-  private windowHandler?: (findbarWindow: BrowserWindow) => void;
-  private boundsHandler: (parentBounds: Rectangle, findbarBounds: Rectangle) => Rectangle = Findbar.setDefaultPosition;
+  private windowHandler = Findbar.defaultWindowHandler;
+  private boundsHandler = Findbar.defaultBoundsHandler;
   private customOptions?: BrowserWindowConstructorOptions;
   private lastText: string = '';
-  private theme?: 'light' | 'dark' | 'system';
+  private theme = Findbar.defaultTheme;
   private matchCaseFlag: boolean = false;
   private isMovableFlag: boolean = false;
   private fixMove?: boolean;
@@ -127,7 +129,7 @@ class Findbar {
    * Get the last state of the findbar.
    */
   getLastState(): LastState {
-    return { text: this.lastText, matchCase: this.matchCaseFlag, movable: this.isMovableFlag, theme: this.getTheme() };
+    return { text: this.lastText, matchCase: this.matchCaseFlag, movable: this.isMovableFlag, theme: this.theme };
   }
 
   /**
@@ -240,7 +242,7 @@ class Findbar {
    * @returns The current theme setting ('light', 'dark', or 'system').
    */
   getTheme(): 'light' | 'dark' | 'system' {
-    return this.theme ??= Findbar.defaultTheme;
+    return this.theme;
   }
 
   /**
@@ -266,6 +268,20 @@ class Findbar {
    */
   static setDefaultTheme(theme: 'light' | 'dark' | 'system'): void {
     Findbar.defaultTheme = theme;
+  }
+
+  /**
+   * Set the default window handler for new findbar instances.
+   */
+  static setDefaultWindowHandler(windowHandler: (findbarWindow: BrowserWindow) => void): void {
+    Findbar.defaultWindowHandler = windowHandler;
+  }
+
+  /**
+   * Set the default bounds handler for new findbar instances.
+   */
+  static setDefaultBoundsHandler(boundsHandler: (parentBounds: Rectangle, findbarBounds: Rectangle) => Rectangle): void {
+    Findbar.defaultBoundsHandler = boundsHandler;
   }
  
   private registerKeyboardShortcuts(event: any, input: any): void {
