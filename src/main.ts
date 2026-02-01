@@ -80,8 +80,6 @@ class Findbar {
 
     this.#windowHandler?.(this.#window);
     this.#window.loadFile(`${__dirname}/index.html`);
-    console.debug(`${__dirname}/index.html loaded`);
-    this.#window.webContents.openDevTools({ mode: 'detach' });
   }
 
   /**

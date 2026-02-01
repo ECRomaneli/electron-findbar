@@ -1,6 +1,6 @@
 {
   "name": "electron-findbar",
-  "version": "4.0.0",
+  "version": "0.0.1-debug",
   "description": "Chrome-like findbar for your Electron app.",
   "exports": {
     ".": {
