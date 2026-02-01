@@ -96,4 +96,4 @@ const Remote: Remote = {
   },
 };
 
-export default Remote;
+export = Remote;

@@ -16,7 +16,6 @@ module.exports = [
       filename: 'main.js',
       path: path.resolve(__dirname, 'dist'),
       libraryTarget: 'commonjs2',
-      libraryExport: 'default',
     },
     module: {
       rules: [
