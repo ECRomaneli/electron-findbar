@@ -22,7 +22,7 @@
     "build": "npm run clean && webpack",
     "build:dev": "npm run clean && NODE_ENV=development webpack",
     "dev": "webpack --mode development --watch",
-    "sample": "electron test/sample.js"
+    "sample": "electron --trace-warnings test/sample.js"
   },
   "repository": {
     "type": "git",

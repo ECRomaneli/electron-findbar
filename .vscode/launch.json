@@ -6,7 +6,7 @@
             "type": "node",
             "request": "launch",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "args": ["${workspaceFolder}/test/sample.js"],
+            "args": ["--trace-warnings", "${workspaceFolder}/test/sample.js"],
             "preLaunchTask": "build:dev",
             "env": {
                 "NODE_ENV": "development"

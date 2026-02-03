@@ -68,8 +68,10 @@ class Findbar {
     if (!this.findableContents) { throw new Error('There are no searchable web contents.');  }
 
     this.findableContents._findbar = this;
-
-    this.findableContents.once('destroyed', () => { this.detach(); });
+    this.findableContents.prependOnceListener('destroyed', () => { this.detach(); });
+    this.findableContents.prependListener('found-in-page', (_e, result: FindInPageResult) => {
+      this.sendMatchesCount(result.activeMatchOrdinal, result.matches);
+    });
     this.updateParentWindow(parent);
   }
 
@@ -368,12 +370,6 @@ class Findbar {
     });
     this.window!.webContents.prependListener('before-input-event', (event, input) => {
       this.registerKeyboardShortcuts(event, input);
-    });
-    this.findableContents.prependOnceListener('destroyed', () => {
-      this.close();
-    });
-    this.findableContents.prependListener('found-in-page', (_e, result: FindInPageResult) => {
-      this.sendMatchesCount(result.activeMatchOrdinal, result.matches);
     });
   }
 
