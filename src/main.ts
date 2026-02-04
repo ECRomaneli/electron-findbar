@@ -291,24 +291,19 @@ class Findbar {
 
     const key = input.key.toLowerCase();
 
-    if (input.shift) {
-      if (key === 'enter') {
-        this.findPrevious();
-        event.preventDefault();
-      }
-      return;
-    }
-
     if (key === 'enter') {
-      this.findNext();
-      event.preventDefault();
+      if (input.shift) {
+        this.findPrevious();
+      } else {
+        this.findNext();
+      }
       return;
     }
 
     if (key === 'escape') {
       if (this.isOpen()) {
-        this.close();
-        event.preventDefault();
+        // WORKAROUND: Delay the close to avoid crash when closing immediately after pressing Esc on MacOS
+        setTimeout(() => this.close(), 0);
       }
     }
   }
