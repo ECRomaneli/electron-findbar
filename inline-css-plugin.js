@@ -14,7 +14,7 @@ class InlineCssPlugin {
     compiler.hooks.emit.tap('InlineCssPlugin', (compilation) => {
       // Path to the source CSS file
       const srcCssFile = path.join(compiler.context, 'src/app.css');
-      const htmlAsset = compilation.assets['index.html'];
+      const htmlAsset = compilation.assets['findbar.html'];
 
       if (!fs.existsSync(srcCssFile)) {
         console.error('❌ CSS source file not found:', srcCssFile);
@@ -60,7 +60,7 @@ class InlineCssPlugin {
         );
 
         // Update asset
-        compilation.assets['index.html'] = {
+        compilation.assets['findbar.html'] = {
           source: () => html,
           size: () => html.length,
         };
