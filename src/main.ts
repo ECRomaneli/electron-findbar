@@ -1,4 +1,8 @@
-import { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions, Rectangle, ipcMain, IpcMainEvent, IpcMainInvokeEvent, FindInPageOptions, View, WebContentsView } from 'electron'
+import { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions, Rectangle, ipcMain, IpcMainEvent, IpcMainInvokeEvent, FindInPageOptions, WebContentsView } from 'electron'
+import fs from 'fs'
+import path from 'path'
+
+declare const __non_webpack_require__: NodeRequire | undefined;
 
 interface Matches {
   active: number
@@ -34,6 +38,7 @@ type FindableBrowserWindow = BrowserWindow & { webContents: FindableWebContents 
  * Chrome-like findbar for Electron applications.
  */
 class Findbar {
+  private static readonly assetPaths = Findbar.buildAssetPaths();
   private static defaultTheme: 'light' | 'dark' | 'system' = 'system';
   private static defaultWindowHandler?: (findbarWindow: BrowserWindow) => void;
   private static defaultBoundsHandler = Findbar.setDefaultPosition;
@@ -92,7 +97,7 @@ class Findbar {
     this.registerListeners();
 
     this.windowHandler?.(this.window);
-    this.window.loadFile(`${__dirname}/index.html`);
+    this.window.loadFile(Findbar.assetPaths.html);
   }
 
   /**
@@ -424,8 +429,25 @@ class Findbar {
     if (!options.webPreferences) { options.webPreferences = {}; }
     options.webPreferences.nodeIntegration = false;
     options.webPreferences.contextIsolation = true;
-    options.webPreferences.preload = options.webPreferences.preload ?? `${__dirname}/preload.js`;
+    options.webPreferences.preload = options.webPreferences.preload ?? Findbar.assetPaths.preload;
     return options;
+  }
+
+  private static buildAssetPaths(): { html: string; preload: string } {
+    const candidates: string[] = [];
+    try {
+      const resolvedPath = __non_webpack_require__!.resolve('electron-findbar');
+      const absolutePath = path.isAbsolute(resolvedPath) ? resolvedPath : path.resolve(process.cwd(), resolvedPath);
+      candidates.push(path.dirname(absolutePath));
+    } catch { /* ignore, fallback below */ }
+    candidates.push(__dirname);
+
+    const baseDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'findbar.html'))) ?? __dirname;
+
+    return {
+      html: path.join(baseDir, 'findbar.html'),
+      preload: path.join(baseDir, 'preload.js'),
+    };
   }
 
   /**

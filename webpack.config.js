@@ -102,8 +102,8 @@ module.exports = [
     },
     plugins: [
       new HtmlWebpackPlugin({
-        template: './src/index.html',
-        filename: 'index.html',
+        template: './src/findbar.html',
+        filename: 'findbar.html',
         inject: false,
         minify: isDev ? false : {
           removeComments: true,
