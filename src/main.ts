@@ -2,7 +2,7 @@ import { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions
 import fs from 'fs'
 import path from 'path'
 
-declare const __non_webpack_require__: NodeRequire | undefined;
+declare const __non_webpack_require__: NodeJS.Require;
 
 interface Matches {
   active: number
@@ -436,7 +436,7 @@ class Findbar {
   private static buildAssetPaths(): { html: string; preload: string } {
     const candidates: string[] = [];
     try {
-      const resolvedPath = __non_webpack_require__!.resolve('electron-findbar');
+      const resolvedPath = __non_webpack_require__.resolve('electron-findbar');
       const absolutePath = path.isAbsolute(resolvedPath) ? resolvedPath : path.resolve(process.cwd(), resolvedPath);
       candidates.push(path.dirname(absolutePath));
     } catch { /* ignore, fallback below */ }
