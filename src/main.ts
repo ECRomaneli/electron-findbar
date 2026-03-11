@@ -1,8 +1,7 @@
 import { BaseWindow, BrowserWindow, WebContents, BrowserWindowConstructorOptions, Rectangle, ipcMain, IpcMainEvent, IpcMainInvokeEvent, FindInPageOptions, WebContentsView } from 'electron'
+import { createRequire } from 'module'
 import fs from 'fs'
 import path from 'path'
-
-declare const __non_webpack_require__: NodeJS.Require;
 
 interface Matches {
   active: number
@@ -426,19 +425,23 @@ class Findbar {
   }
 
   private static buildAssetPaths(): { html: string; preload: string } {
-    const candidates: string[] = [];
-    try {
-      const resolvedPath = __non_webpack_require__.resolve('electron-findbar');
-      const absolutePath = path.isAbsolute(resolvedPath) ? resolvedPath : path.resolve(process.cwd(), resolvedPath);
-      candidates.push(path.dirname(absolutePath));
-    } catch { /* ignore, fallback below */ }
-    candidates.push(__dirname);
+    const asset = 'findbar.html';
 
-    const baseDir = candidates.find(candidate => fs.existsSync(path.join(candidate, 'findbar.html'))) ?? __dirname;
+    // Use Node's native module resolution via createRequire.
+    // Both 'module' and 'electron' are built-in/external modules, so they
+    // survive re-bundling by the consumer's webpack without being mangled.
+    try {
+      const { app } = require('electron');
+      const nativeRequire = createRequire(path.join(app.getAppPath(), '_'));
+      const baseDir = path.dirname(nativeRequire.resolve('electron-findbar')); 
+      if (fs.existsSync(path.join(baseDir, asset))) {
+        return { html: path.join(baseDir, asset), preload: path.join(baseDir, 'preload.js') };
+      }
+    } catch { /* fallback to __dirname */ }
 
     return {
-      html: path.join(baseDir, 'findbar.html'),
-      preload: path.join(baseDir, 'preload.js'),
+      html: path.join(__dirname, asset),
+      preload: path.join(__dirname, 'preload.js'),
     };
   }
 

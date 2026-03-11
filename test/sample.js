@@ -1,4 +1,4 @@
-const { BaseWindow, WebContentsView, app, Menu, MenuItem, ipcMain } = require('electron')
+const { BaseWindow, WebContentsView, app, Menu, MenuItem, ipcMain, BrowserWindow } = require('electron')
 const Findbar = require('electron-findbar')
 
 app.whenReady().then(() => {  
@@ -31,6 +31,16 @@ function renewWindow(window) {
   return newWindow;
 }
 
+function createAndDeleteWindows() {
+  let findbar;
+  setInterval(() => {
+    const tempWindow = new BrowserWindow({ width: 400, height: 300 });
+    setTimeout(() => tempWindow.close(), 200);
+    if (!findbar) { findbar = Findbar.from(tempWindow); } else { findbar.updateParentWindow(tempWindow); }
+    findbar.open();
+  }, 500);
+}
+
 function setupFindbar(windowOrWebContents) {
   const findbar = Findbar.from(windowOrWebContents);
   findbar.setWindowOptions({ movable: !true, resizable: true });
@@ -46,6 +56,7 @@ function setupApplicationMenu(window) {
     { label: 'toggleDevTools', accelerator: 'CommandOrControl+Shift+I', click: () => { window.contentView.children[0].webContents.openDevTools() } },
     { label: 'Test input propagation', click: () => testMenuHandler(window) },
     { label: 'Test renew Window', click: () => window = renewWindow(window) },
+    { label: 'Test create and delete windows', click: () => createAndDeleteWindows() },
     { label: 'Test hide/show parent window', click: () => { window.hide(); setTimeout(() => window.show(), 2000); }, accelerator: 'CommandOrControl+H' },
   ]}))
   Menu.setApplicationMenu(appMenu);
