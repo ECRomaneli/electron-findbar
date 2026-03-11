@@ -127,9 +127,6 @@ class Findbar {
     if (this.parent === newParent) { return; }
     this.close();
     this.parent = newParent as FindableWindow ?? Findbar.getBaseWindowFromWebContents(this.findableContents);
-    if (this.parent && !this.parent.isDestroyed()) {
-      this.parent.once('closed', () => { this.removeParent(); });
-    }
   }
 
   /**
@@ -313,11 +310,6 @@ class Findbar {
     }
   }
 
-  private removeParent(): void {
-    this.close();
-    this.parent = undefined;
-  }
-
   private findInContent(options: FindInPageOptions): void {
     options.matchCase = this.matchCaseFlag;
     this.findableContents.findInPage(this.lastText, options);
@@ -330,6 +322,8 @@ class Findbar {
   private registerListeners(): void {
     const showCascade = () => { this.window!.isVisible() || this.window!.show(); };
     const hideCascade = () => { this.window!.isVisible() && this.window!.hide(); };
+    const closeListener = () => { this.close(); this.parent = undefined; };
+
     const boundsHandler = () => {
       const currentBounds = this.window!.getBounds();
       const newBounds = this.boundsHandler(this.parent!.getBounds(), currentBounds);
@@ -343,11 +337,10 @@ class Findbar {
       if (this.followVisibilityEventsFlag) {
         this.parent.prependListener('show', showCascade);
         this.parent.prependListener('hide', hideCascade);
-        // this.parent.on('restore', showCascade);
-        // this.parent.on('minimize', hideCascade);
       }
       this.parent.prependListener('resize', boundsHandler);
       this.parent.prependListener('move', boundsHandler);
+      this.parent.prependOnceListener('closed', closeListener);
     }
 
     this.window!.once('closed', () => {
@@ -355,11 +348,10 @@ class Findbar {
         if (this.followVisibilityEventsFlag) {
           this.parent.off('show', showCascade);
           this.parent.off('hide', hideCascade);
-          // this.parent.off('restore', showCascade);
-          // this.parent.off('minimize', hideCascade);
         }
         this.parent.off('resize', boundsHandler);
         this.parent.off('move', boundsHandler);
+        this.parent.off('closed', closeListener);
       }
       this.window = void 0;
       this.stopFind();
