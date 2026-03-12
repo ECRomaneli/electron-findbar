@@ -485,13 +485,7 @@ const isFindable = (obj: any): obj is WebContents =>
   )
   ipcMain.on('electron-findbar/next', (e: IpcMainEvent) => Findbar.fromIfExists(e.sender)?.findNext());
   ipcMain.on('electron-findbar/open', (e: IpcMainEvent) => Findbar.from(e.sender).open());
-  ipcMain.on('electron-findbar/close', (e: IpcMainEvent) => {
-    const findbar = Findbar.fromIfExists(e.sender);
-    if (findbar) {
-      findbar.stopFind();
-      findbar.close();
-    }
-  });
+  ipcMain.on('electron-findbar/close', (e: IpcMainEvent) =>  Findbar.fromIfExists(e.sender)?.close());
 })();
 
 export = Findbar;
