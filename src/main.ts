@@ -3,6 +3,8 @@ import { createRequire } from 'module'
 import fs from 'fs'
 import path from 'path'
 
+const FINDBAR_PROP = '__findbar__';
+
 interface Matches {
   active: number
   total: number
@@ -16,7 +18,7 @@ interface LastState {
 }
 
 interface FindableWebContents extends WebContents {
-  _findbar?: Findbar
+  [FINDBAR_PROP]?: Findbar
 }
 
 interface FindInPageResult {
@@ -71,7 +73,7 @@ class Findbar {
 
     if (!this.findableContents) { throw new Error('There are no searchable web contents.');  }
 
-    this.findableContents._findbar = this;
+    Findbar.setRef(this.findableContents, this);
     this.findableContents.prependOnceListener('destroyed', () => { this.detach(); });
     this.findableContents.prependListener('found-in-page', (_e, result: FindInPageResult) => {
       this.sendMatchesCount(result.activeMatchOrdinal, result.matches);
@@ -91,12 +93,12 @@ class Findbar {
     const options = Findbar.mergeStandardOptions(this.customOptions, this.parent);
     this.isMovableFlag = options.movable ?? false;
     this.window = new BrowserWindow(options) as FindableBrowserWindow;
-    this.window.webContents._findbar = this;
 
     this.registerListeners();
 
     this.windowHandler?.(this.window);
     this.window.loadFile(Findbar.assetPaths.html);
+    Findbar.setRef(this.window.webContents, this);
   }
 
   /**
@@ -113,9 +115,9 @@ class Findbar {
    */
   detach(): void {
     this.close();
-    this.findableContents._findbar = void 0;
+    Findbar.setRef(this.findableContents, undefined);
     if (this.window) {
-      this.window.webContents._findbar = void 0;
+      Findbar.setRef(this.window.webContents, undefined);
     }
   }
 
@@ -445,13 +447,17 @@ class Findbar {
     };
   }
 
+  private static setRef(obj: Object, instance: Findbar | undefined): void {
+    Object.defineProperty(obj, FINDBAR_PROP, { value: instance, configurable: true, writable: false });
+  }
+
   /**
    * Get the findbar instance for a given BrowserWindow or WebContents.
    */
   static from(windowOrWebContents: BaseWindow | BrowserWindow | WebContents, customWebContents?: WebContents): Findbar {
     const webContents = isFindable(windowOrWebContents) ? windowOrWebContents : customWebContents ?? Findbar.retrieveWebContents(windowOrWebContents)
     if (!webContents) { throw new Error('[Findbar] There are no searchable web contents.'); }
-    return (webContents as FindableWebContents)._findbar || new Findbar(windowOrWebContents, customWebContents);
+    return (webContents as FindableWebContents).__findbar__ || new Findbar(windowOrWebContents, customWebContents);
   }
 
   /**
@@ -460,7 +466,7 @@ class Findbar {
   static fromIfExists(windowOrWebContents: BaseWindow | BrowserWindow | WebContents): Findbar | undefined {
     const webContents = isFindable(windowOrWebContents) ? windowOrWebContents : Findbar.retrieveWebContents(windowOrWebContents);
     if (!webContents) { throw new Error('[Findbar] There are no searchable web contents.'); }
-    return (webContents as FindableWebContents)._findbar;
+    return (webContents as FindableWebContents).__findbar__;
   }
 }
 
