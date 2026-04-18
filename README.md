@@ -120,14 +120,6 @@ findbar.close()
 
 A new internal window will be created the next time the `open` method is called. There is no need to instantiate another Findbar for the same parent window.
 
-Use `hideAndClose` if you want to hide the findbar immediately and close it after the hide animation:
-
-```js
-findbar.hideAndClose(closeAfterMs = 100)
-```
-
-> If the findbar is shown during the delay, the close will be canceled.
-
 ### Quick Example
 
 Here is a quick example demonstrating how to use the `electron-findbar`:
