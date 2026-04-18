@@ -430,6 +430,7 @@ class Findbar {
     options.skipTaskbar = true;
     options.fullscreenable = false;
     options.autoHideMenuBar = true;
+    options.backgroundColor = '#222222';
     if (!options.webPreferences) { options.webPreferences = {}; }
     options.webPreferences.nodeIntegration = false;
     options.webPreferences.contextIsolation = true;
