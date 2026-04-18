@@ -111,17 +111,6 @@ class Findbar {
   }
 
   /**
-   * Hide the findbar and close it after a specified delay.
-   * @param closeAfterMs - The delay in milliseconds before closing the findbar (default: 100ms)
-   */
-  hideAndClose(closeAfterMs = 100): void {
-    if (this.window && !this.window.isDestroyed()) {
-      this.window.hide();
-      setTimeout(() => !this.window?.isVisible() && this.close(), closeAfterMs);
-    }
-  }
-
-  /**
    * Detach the findbar from the web contents and close it if opened.
    */
   detach(): void {
