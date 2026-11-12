@@ -56,6 +56,7 @@ class Findbar {
   private matchCaseFlag: boolean = false;
   private isMovableFlag: boolean = false;
   private fixMove?: boolean;
+  private movePending = false;
 
   /**
    * Configure the findbar and link to the web contents.
@@ -76,6 +77,7 @@ class Findbar {
     Findbar.setRef(this.findableContents, this);
     this.findableContents.prependOnceListener('destroyed', () => { this.detach(); });
     this.findableContents.prependListener('found-in-page', (_e, result: FindInPageResult) => {
+      if (result.finalUpdate) { this.movePending = false; }
       this.sendMatchesCount(result.activeMatchOrdinal, result.matches);
     });
     this.updateParentWindow(parent);
@@ -144,6 +146,7 @@ class Findbar {
     if (!skipRendererEvent) {
       this.window?.webContents.send('electron-findbar/text-change', text);
     }
+    this.movePending = false;
     if ((this.lastText = text)) {
       this.isOpen() && this.findInContent({ findNext: true });
     } else {
@@ -160,6 +163,7 @@ class Findbar {
     if (!skipRendererEvent) {
       this.window?.webContents.send('electron-findbar/match-case-change', this.matchCaseFlag);
     }
+    this.movePending = false;
     this.stopFindInContent();
     this.startFind(this.lastText, skipRendererEvent);
   }
@@ -168,18 +172,24 @@ class Findbar {
    * Select previous match if any.
    */
   findPrevious(): void {
-    if (this.matches.total < 2) { return; }
+    if (this.matches.total < 2 || this.movePending) { return; }
     if (this.matches.active === 1) { this.fixMove = false; }
-    this.isOpen() && this.findInContent({ forward: false });
+    if (this.isOpen()) {
+      this.movePending = true;
+      this.findInContent({ forward: false });
+    }
   }
 
   /**
    * Select next match if any.
    */
   findNext(): void {
-    if (this.matches.total < 2) { return; }
+    if (this.matches.total < 2 || this.movePending) { return; }
     if (this.matches.active === this.matches.total) { this.fixMove = true; }
-    this.isOpen() && this.findInContent({ forward: true });
+    if (this.isOpen()) {
+      this.movePending = true;
+      this.findInContent({ forward: true });
+    }
   }
 
   /**
@@ -290,6 +300,7 @@ class Findbar {
   }
  
   private registerKeyboardShortcuts(event: any, input: any): void {
+    if (input.type !== 'keyDown' || input.isAutoRepeat) { return; }
     if (input.meta || input.control || input.alt) { return; }
 
     const key = input.key.toLowerCase();
